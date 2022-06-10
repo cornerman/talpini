@@ -1,0 +1,14 @@
+dependencies:
+  vpc: vpc.terraverse.yml
+
+module:
+  source: cornerman/ssm-instance/aws
+  version: "0.1.0"
+  name_prefix: !js '`${values.environment}-webserver`'
+  vpc_id: !js dependencies.vpc.vpc_id
+  subnet_id: !js 'dependencies.vpc.public_subnets[0]'
+  egress_everywhere: true
+  # depends_on:
+  #   - module.aws
+  providers:
+    aws: aws

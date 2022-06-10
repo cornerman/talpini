@@ -1,0 +1,196 @@
+# plugins:
+#   - !require talpini-terraform
+
+hooks:
+  init:
+    - terraform init -reconfigure
+
+# hooks:
+#   init:
+#     - 'file.copy(`${paths.dir_from_terraform}/.terraform.lock.hcl, '.')
+#   finish:
+#     - 'file.copy(`${paths.dir_from_terraform}/.terraform.lock.hcl, '.')
+
+values:
+  environment: !required
+  version: 1
+
+  # file: !js require("fs").readFileSync("/home/cornerman/foo", "utf-8")
+  # file2: !js 'file.readText("/home/cornerman/foo")'
+  # http: !js require("axios").get('https://jsonplaceholder.typicode.com/todos/1').then(r => r.data)
+  http2: !js 'http.getText("https://jsonplaceholder.typicode.com/todos/1")'
+
+  foo: !merge
+    - heinz: 2
+      inner:
+        b: 2
+        x:
+          - 1
+      inner2:
+        b: 2
+    - bar: 2
+      coucou: 3
+      inner:
+        a: 1
+        x:
+          - 2
+      inner2: !overwrite
+        a: 1
+        foo: !js values.environment
+
+  foos: !merge
+    - [1, 2]
+    - [3, !js values.environment]
+
+  aws_region: eu-central-1
+  aws_profile: johannes-private
+  aws_account: 373988118548
+  aws_assume_role_arn: !js '`arn:aws:iam::${values.aws_account}:role/OrganizationAccountAccessRole`'
+
+  project_name: "example"
+
+  default_tags:
+    tags:
+      Environment : !js values.environment
+      Project     : !js values.project_name
+      ManagedBy   : "Terraform"
+
+  shared_provider:
+    profile: !js values.aws_profile
+    assume_role:
+      role_arn: !js values.aws_assume_role_arn
+    allowed_account_ids:
+      - !js values.aws_account
+    default_tags: !js values.default_tags
+
+  #environment: !js env.TM_ENVIRONMENT
+  environmentjs: !js env.TM_ENVIRONMENT
+  environmentjsl: !js |
+    env.TM_ENVIRONMENT ? env.TM_ENVIRONMENT : "default"
+  environmentjsx: !js '`${env.TM_ENVIRONMENT}/${values.project_name}/foo`'
+  environmentjsy: !s ${env.TM_ENVIRONMENT}/${values.project_name}/foo
+  config_all:
+    staging:
+      name: "StagingName"
+    prod:
+      name: "ProdName"
+  config: !js 'console.log("HALLO", values.config_all, values.environment); values.config_all[values.environment]'
+
+  # barol: !js foo.config
+  # barol2: !js foo.config2
+  HAROLINA:
+    - foo
+    - !js values.HAROLINA[0]
+
+  funcTag2: !function()
+    value: test
+    extra: !js values.environment
+
+  funcTag: !function(label;description)
+    value: test
+    extra: !js values.environment
+    FOO: !js Object.keys(this)
+    label: !js label
+    description: !js description
+
+  inline: !js |
+      yaml`
+        value: test
+        extra: !js values.environment
+        description: hallo
+        label: du
+      `
+
+  funcJs: !js |
+    (label, description) => {
+      return yaml`
+        value: test
+        extra: !js values.environment
+        description0: description0
+        description: ${description}
+        description1: description1
+        label0: label0
+        label: ${label}
+        label1: label1
+      `;
+    }
+
+  funcJsSimple: !js '(x) => x + 1'
+
+  zfuncJsSimpleCall: !js 'values.funcJsSimple(1)'
+  zfuncJsCall: !js 'values.funcJs("lab", "desc")'
+  zfuncTagCall: !js 'values.funcTag("lab", "desc")'
+  zfuncTag2Call: !js 'values.funcTag2()'
+
+  zfuncJsSimpleCallF: !js 'values.funcJsSimple'
+  zfuncJsCallF: !js 'values.funcJs'
+  zfuncTagCallF: !js values.funcTag
+
+
+  # func2: !js '(du) => { console.log("HALLO2", du); 1 }'
+
+  # fvalue: !js values.func2("hallo")
+  # fvalue2: !js values.func2("hallo2") + " du"
+
+
+  # ich: !js (function() { console.log("\n\n---\n\n---HARALS\n\n----\n\n", values.func); return values.func(3) })()
+
+backend:
+  type: s3
+  region: !js values.aws_region
+  bucket: !js '`${values.aws_account}-terraform-state`'
+  dynamodb_table: "terraform-lock"
+  key: !s '${values.project_name}/${paths.dir_from_root}/${info.name}.tfstate'
+  encrypt: true
+  role_arn: !js values.aws_assume_role_arn
+  profile: !js values.aws_profile
+
+providers:
+  # aws: !js |
+  #   const providerConfigs = yaml`
+  #     - region: !js values.aws_region
+  #     - region: us-east-1
+  #       alias: us-east-1
+  #   `
+
+  #   providerConfigs.map(o => {
+  #     return { ...values.shared_provider, ...o };
+  #   })
+  # aws:
+  #   - !merge
+  #     - !js values.shared_provider
+  #     - region: eu-central-1
+  #   - !merge
+  #     - !js values.shared_provider
+  #     - region: us-east-1
+  #       alias: us-east-1
+
+  aws:
+    - region: eu-central-1
+      profile: !js values.aws_profile
+      assume_role:
+        role_arn: !js values.aws_assume_role_arn
+      allowed_account_ids: [ !js values.aws_account ]
+      default_tags:
+        tags:
+          Environment : !js values.environment
+          Project     : !js values.project_name
+          ManagedBy   : "Terraform"
+    - !merge
+      - !js providers.aws[0]
+      - region: us-east-1
+        alias: us-east-1
+
+# aws:
+#   profile: ...
+#   assume_role_arn: ...
+#   backend: auto
+#   provider: auto
+#     regions: ???
+
+# generate:
+#   providers.tf: |
+#     provider "aws" {
+#       region  = "!js values.aws_region"
+#       profile = "!js values.aws_profile"
+#     }

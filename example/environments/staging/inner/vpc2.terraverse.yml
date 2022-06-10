@@ -1,0 +1,6 @@
+includes:
+  - ../../../modules/shared/shared-vpc.yml
+
+dependencies:
+  vpc: ../vpc.terraverse.yml
+

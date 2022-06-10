@@ -1,0 +1,16 @@
+{
+  "name": "terraverse",
+  "version": "0.1.0",
+  "description": "Use terraform with joy",
+  "main": "./bin/terraverse.js",
+  "bin": {
+    "terraverse": "./bin/terraverse.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cornerman/terraverse.git"
+  },
+  "author": "cornerman",
+  "license": "MIT",
+  "homepage": "https://github.com/cornerman/terraverse"
+}
