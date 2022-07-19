@@ -70,7 +70,9 @@ object Templating {
       def jsReplacer(any: js.Any, inheritParams: Seq[js.Dictionary[js.Any]]): js.Any = any match {
         case o: JsYamlNode.Code                                   =>
           val evalScope = Proxy.lookup(inheritParams)
-          jsReplacer(Eval.evalBound(evalScope)(o.code), inheritParams)
+          val result = jsReplacer(Eval.evalBound(evalScope)(o.code), inheritParams)
+          if (o.nullable || JsNative.isDefined(result)) result
+          else new JsYamlNode.Required
         case o: JsYamlNode.Params                                 =>
           jsReplacer(o.node, inheritParams :+ o.params)
         case o: JsYamlNode.Merge                                  =>

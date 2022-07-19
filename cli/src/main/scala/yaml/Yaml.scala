@@ -12,7 +12,7 @@ object JsYamlNode {
   class Params(val node: js.Any, val params: js.Dictionary[js.Any]) extends js.Object {
     override def toString: String = s"Params(${js.JSON.stringify(node)}, ${js.JSON.stringify(params)})"
   }
-  class Code(val code: String)                                      extends js.Object {
+  class Code(val code: String, val nullable: Boolean)                                      extends js.Object {
     override def toString: String = s"Code(${code})"
   }
   class Overwrite(val node: js.Any)                                 extends js.Object {
@@ -37,6 +37,7 @@ object Yaml {
 
   val tagNameTpl       = "!s"
   val tagNameJs        = "!js"
+  val tagNameJsNullable = "!js?"
   val tagNameMerge     = "!merge"
   val tagNameOverwrite = "!overwrite"
   val tagNameRequired  = "!required"
@@ -62,7 +63,15 @@ object Yaml {
   }
 
   val constructTpl: js.Function2[Any, UndefOr[String], Any] = { (any, _) =>
-    new JsYamlNode.Code("`" + any.asInstanceOf[String] + "`")
+    new JsYamlNode.Code("`" + any.asInstanceOf[String] + "`", nullable = false)
+  }
+
+  val resolveJsNullable: js.Function1[Any, Boolean] = { any =>
+    JsNative.isString(any.asInstanceOf[js.Any])
+  }
+
+  val constructJsNullable: js.Function2[Any, UndefOr[String], Any] = { (any, _) =>
+    new JsYamlNode.Code(any.asInstanceOf[String], nullable = true)
   }
 
   val resolveJs: js.Function1[Any, Boolean] = { any =>
@@ -70,7 +79,7 @@ object Yaml {
   }
 
   val constructJs: js.Function2[Any, UndefOr[String], Any] = { (any, _) =>
-    new JsYamlNode.Code(any.asInstanceOf[String])
+    new JsYamlNode.Code(any.asInstanceOf[String], nullable = false)
   }
 
   val resolveFunction: js.Function1[Any, Boolean] = { any =>
@@ -83,7 +92,7 @@ object Yaml {
       case parameterGroup :: Nil =>
         val params = parameterGroup.group(1).split(";").filter(_.nonEmpty)
         new JsYamlNode.Params(
-          new JsYamlNode.Code(s"(${params.mkString(", ")}) => { return __terraverse_result_constructor([${params.mkString(",")}]); }"),
+          new JsYamlNode.Code(s"(${params.mkString(", ")}) => { return __terraverse_result_constructor([${params.mkString(",")}]); }", nullable = false),
           js.Dictionary(
             "__terraverse_result_constructor" -> { (paramValues: js.Array[js.Any]) =>
               new JsYamlNode.Params(any.asInstanceOf[js.Any], params.zip(paramValues).toMap.toJSDictionary)
@@ -134,6 +143,13 @@ object Yaml {
         .setKind(jsYamlStrings.mapping)
         .setResolve(resolveOverwrite)
         .setConstruct(constructOverwrite),
+    ),
+    new Type(
+      tagNameJsNullable,
+      TypeConstructorOptions()
+        .setKind(jsYamlStrings.scalar)
+        .setResolve(resolveJsNullable)
+        .setConstruct(constructJsNullable),
     ),
     new Type(
       tagNameJs,

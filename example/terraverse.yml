@@ -12,6 +12,7 @@ hooks:
 #     - 'file.copy(`${paths.dir_from_terraform}/.terraform.lock.hcl, '.')
 
 values:
+  woisserdenn: !js env.what
   environment: !required
   version: 1
 
@@ -64,7 +65,7 @@ values:
     default_tags: !js values.default_tags
 
   #environment: !js env.TM_ENVIRONMENT
-  environmentjs: !js env.TM_ENVIRONMENT
+  environmentjs: !js? env.TM_ENVIRONMENT
   environmentjsl: !js |
     env.TM_ENVIRONMENT ? env.TM_ENVIRONMENT : "default"
   environmentjsx: !js '`${env.TM_ENVIRONMENT}/${values.project_name}/foo`'
