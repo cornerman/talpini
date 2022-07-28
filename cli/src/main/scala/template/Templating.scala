@@ -58,6 +58,7 @@ object Templating {
       )
 
       val api = js.Object.assign(
+        js.Object(),
         TemplateApi,
         js.Dynamic.literal(
           aws = aws,
