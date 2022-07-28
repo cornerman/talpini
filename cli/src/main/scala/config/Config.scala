@@ -44,6 +44,7 @@ object ConfigRaw {
 
 trait Config extends js.Object {
   @JSName("enabled") def _enabled: js.UndefOr[Boolean]
+  @JSName("sensitive") def _sensitive: js.UndefOr[Boolean]
   @JSName("generate") def _generateFiles: js.UndefOr[js.Dictionary[String]]
   @JSName("copy") def _copyFiles: js.UndefOr[js.Array[String]]
   @JSName("dependencies") def _dependencies: js.UndefOr[js.Dictionary[String]]
@@ -54,6 +55,7 @@ trait Config extends js.Object {
 }
 object Config {
   implicit class Ops(private val self: Config) extends AnyVal {
+    def sensitive     = self._enabled.getOrElse(false)
     def enabled       = self._enabled.getOrElse(true)
     def generateFiles = self._generateFiles.getOrElse(js.Dictionary.empty)
     def copyFiles     = self._copyFiles.getOrElse(js.Array())

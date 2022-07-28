@@ -56,6 +56,7 @@ object TerraformProject {
     s"""${generatedHeader}
        |output "${outputName}" {
        |  value = module.${config.name}
+       |  sensitive = ${config.config.sensitive}
        |}
        |""".stripMargin
 
