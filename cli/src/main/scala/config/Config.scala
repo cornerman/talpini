@@ -55,7 +55,7 @@ trait Config extends js.Object {
 }
 object Config {
   implicit class Ops(private val self: Config) extends AnyVal {
-    def sensitive     = self._enabled.getOrElse(false)
+    def sensitive     = self._sensitive.getOrElse(false)
     def enabled       = self._enabled.getOrElse(true)
     def generateFiles = self._generateFiles.getOrElse(js.Dictionary.empty)
     def copyFiles     = self._copyFiles.getOrElse(js.Array())
