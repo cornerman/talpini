@@ -2,5 +2,5 @@ includes:
   - ../../../modules/shared/shared-vpc.yml
 
 dependencies:
-  vpc: ../vpc.terraverse.yml
+  vpc: ../vpc.talpini.yml
 

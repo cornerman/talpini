@@ -1,7 +1,7 @@
-package terraverse.proxy
+package talpini.proxy
 
-import terraverse.native.JsNative
-import terraverse.yaml.JsYamlNode
+import talpini.native.JsNative
+import t.yaml.JsYamlNode
 
 import scala.scalajs.js
 import scala.scalajs.js.PropertyDescriptor

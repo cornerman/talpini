@@ -1,5 +1,5 @@
 dependencies:
-  vpc: vpc.terraverse.yml
+  vpc: vpc.t.yml
 
 module:
   source: cornerman/ssm-instance/aws

@@ -1,4 +1,4 @@
-package terraverse.logging
+package talpini.logging
 
 sealed abstract class LogLevel(val level: Int) {
   def <(other: LogLevel): Boolean  = level < other.level

@@ -1,8 +1,8 @@
-package terraverse.config
+package talpini.config
 
 import cats.data.EitherNec
 import cats.implicits._
-import terraverse.native.JsNative
+import talpini.native.JsNative
 
 import scala.scalajs.js
 

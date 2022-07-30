@@ -1,16 +1,16 @@
 {
-  "name": "terraverse",
+  "name": "talpini",
   "version": "0.1.4",
   "description": "Use terraform with joy",
-  "main": "./bin/terraverse.js",
+  "main": "./bin/talpini.js",
   "bin": {
-    "terraverse": "./bin/terraverse.js"
+    "talpini": "./bin/talpini.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cornerman/terraverse.git"
+    "url": "git+https://github.com/cornerman/talpini.git"
   },
   "author": "cornerman",
   "license": "MIT",
-  "homepage": "https://github.com/cornerman/terraverse"
+  "homepage": "https://github.com/cornerman/talpini"
 }

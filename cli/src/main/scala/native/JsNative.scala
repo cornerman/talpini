@@ -1,6 +1,6 @@
-package terraverse.native
+package talpini.native
 
-import terraverse.yaml.JsYamlNode
+import t.yaml.JsYamlNode
 
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters._

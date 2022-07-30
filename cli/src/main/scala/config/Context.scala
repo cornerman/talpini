@@ -1,4 +1,4 @@
-package terraverse.config
+package talpini.config
 
 import scala.scalajs.js
 

@@ -1,7 +1,7 @@
-package terraverse.native
+package talpini.native
 
 import cats.implicits._
-import terraverse.logging.Logger
+import talpini.logging.Logger
 import typings.node.bufferMod.global.BufferEncoding
 import typings.node.{fsMod, pathMod}
 
@@ -19,8 +19,8 @@ class FileSystem(readPath: String, writePath: String) {
     val absolutePath = pathMod.resolve(path)
 
     val canWrite = absolutePath.startsWith(writeAbsolutePath) && (
-      absolutePath.contains(s"${pathMod.sep}.terraverse${pathMod.sep}") ||
-        absolutePath.endsWith(s"${pathMod.sep}.terraverse")
+      absolutePath.contains(s"${pathMod.sep}.talpini${pathMod.sep}") ||
+        absolutePath.endsWith(s"${pathMod.sep}.talpini")
     )
 
     // we allow ourselves to overwrite terraform state/lock files outside of the write dir and write back to the read dir

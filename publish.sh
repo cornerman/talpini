@@ -9,5 +9,5 @@ mkdir ./npm/bin/
 
 sbt cli/fullOptJS::webpack
 
-cp ./cli/target/scala-2.13/scalajs-bundler/main/terraverse.js ./npm/bin/
+cp ./cli/target/scala-2.13/scalajs-bundler/main/talpini.js ./npm/bin/
 cp ./README.md ./npm/

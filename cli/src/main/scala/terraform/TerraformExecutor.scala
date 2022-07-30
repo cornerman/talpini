@@ -1,8 +1,8 @@
-package terraverse.terraform
+package talpini.terraform
 
 import cats.effect.IO
-import terraverse.AppConfig
-import terraverse.logging.Logger
+import talpini.AppConfig
+import talpini.logging.Logger
 import typings.colors.{safeMod => Colors}
 import typings.node.NodeJS.ReadableStream
 import typings.node.anon.End
@@ -25,6 +25,8 @@ object TerraformExecutor {
 
   private def colorOfString(s: String): String = colors(s.hashCode.abs % colors.length)(s)
 
+  private def isVisiblyEmpty(s: String): Boolean = s.filterNot(_.isControl).isEmpty
+
   // decorate lines with a prefix
   // we use string.split from javascript, because it behaves saner than java.
   // java:
@@ -37,10 +39,10 @@ object TerraformExecutor {
   // [ '', 'a', 'b', 'c', '' ]
   // > "\na\nb\nc".split("\n")
   // [ '', 'a', 'b', 'c' ]
-  private def addPrefixToLines(s: String, prefix: String): String = if (s.isEmpty) ""
+  private def addPrefixToLines(s: String, prefix: String): String = if (isVisiblyEmpty(s)) ""
   else {
     val decorateF: String => String           = s => colorOfString(prefix) + s
-    val decorateIfNonEmptyF: String => String = s => if (s.isEmpty) s else decorateF(s)
+    val decorateIfNonEmptyF: String => String = s => if (isVisiblyEmpty(s)) s else decorateF(s)
 
     import JSStringOps._
     val split = s.jsSplit(System.lineSeparator())
@@ -57,7 +59,7 @@ object TerraformExecutor {
   }
 
   def terraformToOutput(appConfig: AppConfig, name: String, path: String, commands: Seq[String]): IO[String] =
-    IO.async_ { cb =>
+    IO.async_[String] { cb =>
       val childProcess = spawnTerraform(appConfig, path, commands)
 
       val output    = new StringBuilder
@@ -97,10 +99,10 @@ object TerraformExecutor {
               cb(Left(new Exception(s"Terraform returned error code: $code")))
             },
         )
-    }
+    }.uncancelable
 
   def terraformInForeground(appConfig: AppConfig, name: String, path: String, commands: Seq[String], forwardStdIn: Boolean): IO[Unit] =
-    IO.async_ { cb =>
+    IO.async_[Unit] { cb =>
       val childProcess = spawnTerraform(appConfig, path, commands)
 
       val decorateLines: String => String =
@@ -140,5 +142,5 @@ object TerraformExecutor {
             if (code == 0) cb(Right(()))
             else cb(Left(new Exception(s"Terraform returned error code: $code"))),
         )
-    }
+    }.uncancelable
 }

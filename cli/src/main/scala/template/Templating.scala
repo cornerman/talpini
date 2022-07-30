@@ -1,13 +1,13 @@
-package terraverse.template
+package talpini.template
 
 import cats.effect.IO
 import cats.implicits._
 import native.JsHttp
-import terraverse.AppConfig
-import terraverse.config._
-import terraverse.native._
-import terraverse.proxy.Proxy
-import terraverse.yaml._
+import talpini.AppConfig
+import talpini.config._
+import talpini.native._
+import talpini.proxy.Proxy
+import t.yaml._
 import typings.node.bufferMod.global.BufferEncoding
 import typings.node.{fsMod, pathMod, processMod}
 

@@ -4,7 +4,7 @@ const fs = require('fs');
 
 module.exports = require('./scalajs.webpack.config');
 
-module.exports.output.filename = "terraverse.js";
+module.exports.output.filename = "talpini.js";
 module.exports.target = "node";
 module.exports.plugins = module.exports.plugins || [];
 module.exports.plugins.push(new webpack.BannerPlugin({
@@ -12,5 +12,5 @@ module.exports.plugins.push(new webpack.BannerPlugin({
   raw: true,
 }));
 module.exports.plugins.push(function () {
-  this.plugin('done', () => fs.chmodSync('terraverse.js', '755'))
+  this.plugin('done', () => fs.chmodSync('talpini.js', '755'))
 });

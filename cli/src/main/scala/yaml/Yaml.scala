@@ -1,6 +1,6 @@
-package terraverse.yaml
+package t.yaml
 
-import terraverse.native.JsNative
+import talpini.native.JsNative
 import typings.jsYaml.mod._
 import typings.jsYaml.{jsYamlStrings, mod => jsYaml}
 
@@ -92,9 +92,9 @@ object Yaml {
       case parameterGroup :: Nil =>
         val params = parameterGroup.group(1).split(";").filter(_.nonEmpty)
         new JsYamlNode.Params(
-          new JsYamlNode.Code(s"(${params.mkString(", ")}) => { return __terraverse_result_constructor([${params.mkString(",")}]); }", nullable = false),
+          new JsYamlNode.Code(s"(${params.mkString(", ")}) => { return __talpini_result_constructor([${params.mkString(",")}]); }", nullable = false),
           js.Dictionary(
-            "__terraverse_result_constructor" -> { (paramValues: js.Array[js.Any]) =>
+            "__talpini_result_constructor" -> { (paramValues: js.Array[js.Any]) =>
               new JsYamlNode.Params(any.asInstanceOf[js.Any], params.zip(paramValues).toMap.toJSDictionary)
             },
           ),

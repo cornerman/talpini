@@ -1,9 +1,9 @@
-package terraverse.config
+package talpini.config
 
 import cats.implicits._
-import terraverse.AppConfig
-import terraverse.native.JsNative
-import terraverse.yaml.Yaml
+import talpini.AppConfig
+import talpini.native.JsNative
+import t.yaml.Yaml
 import typings.glob.{mod => glob}
 import typings.node.bufferMod.global.BufferEncoding
 import typings.node.{fsMod, pathMod}
@@ -15,7 +15,7 @@ object ConfigReader {
 
   private def isHidden(x: String): Boolean = pathMod.basename(x).matches("^\\..+")
 
-  private def isTargetFile(x: String): Boolean = isFile(x) && !isHidden(x) && (x.endsWith(".terraverse.yml") || x.endsWith(".terraverse.yaml"))
+  private def isTargetFile(x: String): Boolean = isFile(x) && !isHidden(x) && (x.endsWith(".t.yml") || x.endsWith(".t.yaml"))
 
   @annotation.tailrec
   def findFilesInDirAndUp(dir: String, filenames: List[String], accum: List[String] = List.empty): List[String] =

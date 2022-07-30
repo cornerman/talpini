@@ -1,4 +1,4 @@
-package terraverse
+package talpini
 
 package object config {
   type LoadedConfig    = LoadedConfigType[Config]

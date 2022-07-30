@@ -1,10 +1,10 @@
-package terraverse.cloud
+package talpini.cloud
 
 import cats.effect.IO
 import cats.implicits._
-import terraverse.cloud.aws.AWS
-import terraverse.config.ConfigBackend
-import terraverse.logging.Logger
+import talpini.cloud.aws.AWS
+import talpini.config.ConfigBackend
+import talpini.logging.Logger
 
 import scala.collection.mutable
 

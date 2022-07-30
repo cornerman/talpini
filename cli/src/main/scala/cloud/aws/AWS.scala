@@ -1,11 +1,11 @@
-package terraverse.cloud.aws
+package talpini.cloud.aws
 
 import cats.effect.IO
 import cats.implicits._
 import org.scalablytyped.runtime.StObject
-import terraverse.cli.UserPrompt
-import terraverse.config.ConfigBackend
-import terraverse.logging.Logger
+import talpini.cli.UserPrompt
+import talpini.config.ConfigBackend
+import talpini.logging.Logger
 import typings.awsSdkClientDynamodb.dynamoDBClientMod.DynamoDBClientConfig
 import typings.awsSdkClientDynamodb.mod.{CreateTableCommand, DescribeTableCommand, DynamoDBClient}
 import typings.awsSdkClientDynamodb.models0Mod._
@@ -67,7 +67,7 @@ private object Extensions {
     def opt[A](option: Option[A])(f: (T, A) => T): T     = option.fold(self)(a => f(self, a))
   }
 }
-import terraverse.cloud.aws.Extensions._
+import talpini.cloud.aws.Extensions._
 
 object AWS {
   def stateCredentials(backend: ConfigBackend.S3): CredentialProvider = {
@@ -107,7 +107,7 @@ object AWS {
           .Object()
           .asInstanceOf[AssumeRoleCommandInput]
           .setRoleArn(roleArn)
-          .setRoleSessionName(backend.sessionName.getOrElse("terraverse"))
+          .setRoleSessionName(backend.sessionName.getOrElse("talpini"))
           .opt(backend.assumeRolePolicy)(_ setPolicy _)
           .opt(backend.assumeRoleDurationSeconds)(_ setDurationSeconds _)
           .opt(backend.externalId)(_ setExternalId _)
@@ -241,7 +241,7 @@ object AWS {
            |Bucket: '${backend.bucket}'
            |Table: ${backend.dynamodbTable.fold("-")(t => s"'$t'")}
            |
-           |${Colors.red("Should terraverse create it for you?")}""".stripMargin,
+           |${Colors.red("Should talpini create it for you?")}""".stripMargin,
       )
 
       userConfirm.flatMap {

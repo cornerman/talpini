@@ -1,6 +1,6 @@
-package terraverse.config
+package talpini.config
 
-import terraverse.AppConfig
+import talpini.AppConfig
 import typings.node.pathMod
 
 case class DependencyGraphEntry(config: LoadedConfigRaw, hasDependee: Boolean)

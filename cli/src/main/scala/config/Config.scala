@@ -1,9 +1,9 @@
-package terraverse.config
+package talpini.config
 
 import cats.data.EitherNec
 import cats.implicits._
-import terraverse.AppConfig
-import terraverse.native.JsNative
+import talpini.AppConfig
+import talpini.native.JsNative
 import typings.node.cryptoMod.BinaryToTextEncoding
 import typings.node.{cryptoMod, pathMod}
 
@@ -16,7 +16,7 @@ case class LoadedConfigType[T <: js.Any](filePath: String, rootPath: String, con
   val dirPathRelative       = pathMod.dirname(dirPath)
   val name                  = pathMod.basename(filePath).replaceAll("\\..*$", "")
   val nameRelative          = pathMod.relative(".", pathMod.join(dirPath, name))
-  val terraformPath         = pathMod.resolve(dirPath, ".terraverse", name)
+  val terraformPath         = pathMod.resolve(dirPath, ".talpini", name)
   val terraformPathRelative = pathMod.relative(".", terraformPath)
 
   def digest: String = {

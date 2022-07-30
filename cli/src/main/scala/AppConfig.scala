@@ -1,8 +1,8 @@
-package terraverse
+package talpini
 
 import cats.implicits._
-import terraverse.cli._
-import terraverse.logging.LogLevel
+import talpini.cli._
+import talpini.logging.LogLevel
 
 import scala.scalajs.js
 
@@ -12,7 +12,7 @@ case class AppConfig(
   runAll: Boolean = false,
   parallelism: Int = 1,
   targets: List[String] = Nil,
-  autoIncludes: List[String] = List("terraverse.yaml", "terraverse.yml"),
+  autoIncludes: List[String] = List("talpini.yaml", "talpini.yml"),
   commands: List[String] = Nil,
   prompt: Boolean = true,
   cache: Boolean = true,
@@ -28,7 +28,7 @@ object AppConfig {
   val default = AppConfig()
 
   val command = Command[Either[String, *], AppConfig](
-    name = "terraverse",
+    name = "talpini",
     options = List(
       CliOpt.Flag(
         OptId("h", "help"),
@@ -42,7 +42,7 @@ object AppConfig {
       ),
       CliOpt.Arg(
         OptId("t", "target"),
-        "Select target file/directory (default: ./). in case of a file, it only runs on this file. If you specify a directory, it recursively searches for any *.terraverse.yml (or yaml) file.",
+        "Select target file/directory (default: ./). in case of a file, it only runs on this file. If you specify a directory, it recursively searches for any *.t.yml (or yaml) file.",
         (config, arg) => Right(config.copy(targets = config.targets :+ arg)),
       ),
       CliOpt.Arg(
@@ -52,7 +52,7 @@ object AppConfig {
       ),
       CliOpt.Flag(
         OptId("y", "yes"),
-        "Automatically say yes to all terraverse prompts. This has no influence on terraform prompts. Example for apply without any user-prompts: terraverse -y --run-all apply -auto-approve.",
+        "Automatically say yes to all talpini prompts. This has no influence on terraform prompts. Example for apply without any user-prompts: talpini -y --run-all apply -auto-approve.",
         config => Right(config.copy(prompt = false)),
       ),
       CliOpt.Flag(
@@ -67,12 +67,12 @@ object AppConfig {
       ),
       CliOpt.Arg(
         OptId.long("auto-include"),
-        "Per default files called terraverse.yml (or .yaml) above the directory are auto-included. You can add additional auto-include files, e.g. --auto-include dev.yml.",
+        "Per default files called talpini.yml (or .yaml) above the directory are auto-included. You can add additional auto-include files, e.g. --auto-include dev.yml.",
         (config, arg) => Right(config.copy(autoIncludes = config.autoIncludes :+ arg)),
       ),
       CliOpt.Arg(
         OptId.long("init-arg"),
-        "Set which terraform command to execute.",
+        "Set which args to append to terraform init.",
         (config, arg) => Right(config.copy(terraformInitArgs = config.terraformInitArgs :+ arg)),
       ),
       CliOpt.Arg(

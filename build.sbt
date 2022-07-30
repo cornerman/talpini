@@ -6,12 +6,12 @@ inThisBuild(
     organization           := "io.github.fun-stack",
     scalaVersion           := "2.13.8",
     licenses               := Seq("MIT License" -> url("https://opensource.org/licenses/MIT")),
-    homepage               := Some(url("https://github.com/cornerman/terraverse")),
+    homepage               := Some(url("https://github.com/cornerman/talpini")),
     scmInfo                := Some(
       ScmInfo(
-        url("https://github.com/cornerman/terraverse"),
-        "scm:git:git@github.com:cornerman/terraverse.git",
-        Some("scm:git:git@github.com:cornerman/terraverse.git"),
+        url("https://github.com/cornerman/talpini"),
+        "scm:git:git@github.com:cornerman/talpini.git",
+        Some("scm:git:git@github.com:cornerman/talpini.git"),
       ),
     ),
     pomExtra               :=
@@ -40,7 +40,7 @@ lazy val cli = project
   .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin, ScalablyTypedConverterPlugin)
   .settings(commonSettings)
   .settings(
-    name                            := "terraverse",
+    name                            := "talpini",
     useYarn                         := true,
     scalaJSUseMainModuleInitializer := true,
     webpackConfigFile               := Some(baseDirectory.value / "webpack.config.js"),

@@ -1,4 +1,4 @@
-package terraverse.cli
+package talpini.cli
 
 import cats.effect.IO
 import typings.node.NodeJS.{ReadableStream, WritableStream}

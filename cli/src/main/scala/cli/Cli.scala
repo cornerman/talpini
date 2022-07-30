@@ -1,4 +1,4 @@
-package terraverse.cli
+package talpini.cli
 
 import cats.Monad
 import cats.implicits._
@@ -66,7 +66,7 @@ case class Command[F[_]: Monad, T](
 
   // We parse environment variable to cli options in the form: <NAME>_CLI_<long_option>
   // Example for flags: `<NAME>_CLI_RUN_ALL="true"`              translates to `--run-all`
-  // Example for args:  `<NAME>_CLI_TARGET="vpc.terraverse.yaml"` translates to `--target vpc.terraverse.yaml`
+  // Example for args:  `<NAME>_CLI_TARGET="vpc.t.yaml"` translates to `--target vpc.t.yaml`
   def parseFromEnv(seed: T): F[T] = {
     def envSanitizer(s: String) = s.replaceAll("-", "_").toUpperCase
 

@@ -1,14 +1,14 @@
-package terraverse
+package talpini
 
 import cats.effect.implicits._
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
-import terraverse.cli.UserPrompt
-import terraverse.config.{ConfigReader, Context, DependencyGraph, LoadedConfig}
-import terraverse.logging.Logger
-import terraverse.template.Templating
+import talpini.cli.UserPrompt
+import talpini.config.{ConfigReader, Context, DependencyGraph, LoadedConfig}
+import talpini.logging.Logger
+import talpini.template.Templating
 import terraform.{TerraformExecutor, TerraformProject}
-import terraverse.yaml.Yaml
+import t.yaml.Yaml
 import typings.colors.{safeMod => Colors}
 import typings.node.pathMod
 import typings.node.processMod.global.process
@@ -146,19 +146,18 @@ object Main extends IOApp {
 
                     run
                       .flatTap(_.traverse_ { case (k, v) => IO(allOutputs.update(k, v)) })
-                      .uncancelable
                       .as(config)
                   }
                 }
             }
 
-              resolvedConfigs.flatMap { dependencies =>
-                IO.whenA(shouldReverseRun)(dependencies.reverse.traverse_ { dependencyBatch =>
-                  dependencyBatch.parTraverseN(appConfig.parallelism) { config =>
-                    runConfig(requestedTargetFiles, appConfig, config)
-                  }
-                })
-              }.void
+            resolvedConfigs.flatMap { dependencies =>
+              IO.whenA(shouldReverseRun)(dependencies.reverse.traverse_ { dependencyBatch =>
+                dependencyBatch.parTraverseN(appConfig.parallelism) { config =>
+                  runConfig(requestedTargetFiles, appConfig, config)
+                }
+              })
+            }.void
         }
     }
   }
