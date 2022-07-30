@@ -147,12 +147,14 @@ object Main extends IOApp {
                     val resolvedConfig = Templating.replaceVariables(dependency.config, context)
 
                     resolvedConfig.flatMap { config =>
-                      val run = runInit(appConfig, config) *>
+                      val run =
+                        runInit(appConfig, config) *>
                       IO.whenA(!shouldReverseRun)(runConfig(requestedTargetFiles, appConfig, config)) *>
                       runOutput(appConfig, config, needOutput = dependency.hasDependee).map(_.map(config.filePath -> _))
 
                       run
                         .flatTap(_.traverse_ { case (k, v) => IO(allOutputs.update(k, v)) })
+                        .uncancelable
                         .as(config)
                     }
                   }
