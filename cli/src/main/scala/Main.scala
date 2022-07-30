@@ -43,7 +43,7 @@ object Main extends IOApp {
         else {
           Logger.trace(Colors.green(s"\nTerramind configuration:\n"))
           Logger.trace(pprint.tokenize(appConfig, showFieldNames = true, indent = 2).mkString)
-          program(appConfig)
+          program(appConfig).as(ExitCode.Success)
         }
     }
   }
@@ -82,7 +82,7 @@ object Main extends IOApp {
                      )
     } yield ()
 
-  def program(appConfig: AppConfig): IO[ExitCode] = {
+  def program(appConfig: AppConfig): IO[Unit] = {
     val targetsWithDefault = if (appConfig.targets.isEmpty) List(".") else appConfig.targets
     val configs            = targetsWithDefault.flatTraverse(ConfigReader.readConfigs(appConfig, _))
 
@@ -122,43 +122,35 @@ object Main extends IOApp {
             // TODO: This should be done properly in some terraform related scala files (plugin system)
             val shouldReverseRun = appConfig.commands.contains("destroy")
 
-            // TODO should we have this. It is actually quite difficult to get right?
-            // remote_state and each provider can have different credentials and therefore different account/region
-            // furthermore, if we allow this to be a variable, then we need to run this after resolving credentials in the
-            // remote_state (but that can have variables). Would mean multi different variable replacement runs.
-            val contextAws = IO.pure(None)
-
             val allOutputs = mutable.HashMap.empty[String, js.Any]
 
-            contextAws.flatMap { contextAws =>
-              val resolvedConfigs: IO[Seq[Seq[LoadedConfig]]] = dependencies.traverse { dependencyBatch =>
-                dependencyBatch
-                  .parTraverseN(appConfig.parallelism) { dependency =>
-                    val contextDependencies = dependency.config.config.dependencies.map(_.toMap.flatMap { case (name, file) =>
-                      val absoluteFile = pathMod.resolve(dependency.config.dirPath, file)
-                      allOutputs.get(absoluteFile).map(name -> _)
-                    })
+            val resolvedConfigs: IO[Seq[Seq[LoadedConfig]]] = dependencies.traverse { dependencyBatch =>
+              dependencyBatch
+                .parTraverseN(appConfig.parallelism) { dependency =>
+                  val contextDependencies = dependency.config.config.dependencies.map(_.toMap.flatMap { case (name, file) =>
+                    val absoluteFile = pathMod.resolve(dependency.config.dirPath, file)
+                    allOutputs.get(absoluteFile).map(name -> _)
+                  })
 
-                    val context = Context(
-                      dependencyOutputs = contextDependencies.getOrElse(Map.empty),
-                      aws = contextAws,
-                    )
+                  val context = Context(
+                    dependencyOutputs = contextDependencies.getOrElse(Map.empty),
+                  )
 
-                    val resolvedConfig = Templating.replaceVariables(dependency.config, context)
+                  val resolvedConfig = Templating.replaceVariables(dependency.config, context)
 
-                    resolvedConfig.flatMap { config =>
-                      val run =
-                        runInit(appConfig, config) *>
-                      IO.whenA(!shouldReverseRun)(runConfig(requestedTargetFiles, appConfig, config)) *>
-                      runOutput(appConfig, config, needOutput = dependency.hasDependee).map(_.map(config.filePath -> _))
+                  resolvedConfig.flatMap { config =>
+                    val run =
+                      runInit(appConfig, config) *>
+                        IO.whenA(!shouldReverseRun)(runConfig(requestedTargetFiles, appConfig, config)) *>
+                        runOutput(appConfig, config, needOutput = dependency.hasDependee).map(_.map(config.filePath -> _))
 
-                      run
-                        .flatTap(_.traverse_ { case (k, v) => IO(allOutputs.update(k, v)) })
-                        .uncancelable
-                        .as(config)
-                    }
+                    run
+                      .flatTap(_.traverse_ { case (k, v) => IO(allOutputs.update(k, v)) })
+                      .uncancelable
+                      .as(config)
                   }
-              }
+                }
+            }
 
               resolvedConfigs.flatMap { dependencies =>
                 IO.whenA(shouldReverseRun)(dependencies.reverse.traverse_ { dependencyBatch =>
@@ -166,9 +158,7 @@ object Main extends IOApp {
                     runConfig(requestedTargetFiles, appConfig, config)
                   }
                 })
-              }
-            }
-              .as(ExitCode.Success)
+              }.void
         }
     }
   }

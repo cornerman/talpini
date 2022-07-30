@@ -30,15 +30,6 @@ object Templating {
 
       val dependencies: js.Any = context.dependencyOutputs.toJSDictionary
 
-      val aws: js.Any = context.aws
-        .map(aws =>
-          js.Dynamic.literal(
-            account = aws.accountId,
-            region = aws.region,
-          ),
-        )
-        .orUndefined
-
       val paths: js.Object = js.Dynamic.literal(
         file = loadedConfig.filePath,
         dir = loadedConfig.dirPath,
@@ -61,7 +52,6 @@ object Templating {
         js.Object(),
         TemplateApi,
         js.Dynamic.literal(
-          aws = aws,
           dependencies = dependencies,
           paths = paths,
           info = info,
