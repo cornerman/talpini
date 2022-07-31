@@ -2,5 +2,5 @@ includes:
   - ../../../modules/shared/shared-vpc.yml
 
 dependencies:
-  vpc: ../vpc.talpini.yml
+  vpc: ../vpc.t.yml
 

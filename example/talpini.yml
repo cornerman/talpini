@@ -12,7 +12,7 @@ hooks:
 #     - 'file.copy(`${paths.dir_from_terraform}/.terraform.lock.hcl, '.')
 
 values:
-  woisserdenn: !js env.what
+  woisserdenn: !js? env.what
   environment: !required
   version: 1
 
@@ -177,10 +177,10 @@ providers:
           Environment : !js values.environment
           Project     : !js values.project_name
           ManagedBy   : "Terraform"
-    - !merge
-      - !js providers.aws[0]
-      - region: us-east-1
-        alias: us-east-1
+    # - !merge
+    #   - !js providers.aws[0]
+    #   - region: us-east-1
+    #     alias: us-east-1
 
 # aws:
 #   profile: ...
