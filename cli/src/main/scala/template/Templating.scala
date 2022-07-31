@@ -23,6 +23,8 @@ private object Eval extends js.Any {
   def argumentsFunction(@annotation.unused proxy: js.Function1[js.Array[js.Any], js.Any]): js.Function = js.native
 }
 
+case class ConfigRunException(msg: String) extends Exception(s"Configuration Error: $msg")
+
 object Templating {
 
   def replaceVariables(loadedConfig: LoadedConfigRaw, context: Context): IO[LoadedConfig] = {
@@ -93,9 +95,9 @@ object Templating {
 
     def jsFlatten(path: List[String], any: js.Any): IO[js.Any] = any match {
       case o: JsYamlNode.Required         =>
-        IO.raiseError(new Exception(s"Required field is missing at ${path.reverse.mkString(".")}. Will stop."))
+        IO.raiseError(new ConfigRunException(s"Required field is missing at ${path.reverse.mkString(".")} (in ${loadedConfig.filePathRelative})."))
       case o if JsYamlNode.is(o)          =>
-        IO.raiseError(new Exception(s"Unexpected control node at ${path.reverse.mkString(".")}: ${o}. Will stop."))
+        IO.raiseError(new ConfigRunException(s"Unexpected control node at ${path.reverse.mkString(".")} (in ${loadedConfig.filePathRelative}): ${o}. This is a bug, please report it."))
       case pro if JsNative.isPromise(pro) =>
         IO.fromPromise(IO(pro.asInstanceOf[js.Promise[js.Any]])).flatMap(jsFlatten("<then>" :: path, _))
       case arr if JsNative.isArray(arr)   =>
