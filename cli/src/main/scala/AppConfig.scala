@@ -10,7 +10,8 @@ case class AppConfig(
   showVersion: Boolean = false,
   showHelp: Boolean = false,
   runAll: Boolean = false,
-  parallelism: Int = 1,
+  parallelRun: Boolean = false,
+  parallelInit: Boolean = true,
   targets: List[String] = Nil,
   autoIncludes: List[String] = List("talpini.yaml", "talpini.yml"),
   commands: List[String] = Nil,
@@ -45,14 +46,19 @@ object AppConfig {
         "Select target file/directory (default: ./). in case of a file, it only runs on this file. If you specify a directory, it recursively searches for any *.t.yml (or yaml) file.",
         (config, arg) => Right(config.copy(targets = config.targets :+ arg)),
       ),
-      CliOpt.Arg(
-        OptId("p", "parallelism"),
-        "Specify the number of parallel runs. So you can process independent groups of terraform modules in parallel. stdin is disabled - so you cannot confirm user-prompts from terraform.",
-        (config, arg) => arg.toIntOption.filter(_ > 0).toRight(s"Expected number, but got: $arg").map(p => config.copy(parallelism = p)),
+      CliOpt.Flag(
+        OptId("p", "parallel-run"),
+        "Execute terraform runs in parallel. So you can process independent groups of terraform modules in parallel. stdin is disabled - so you cannot confirm user-prompts from terraform.",
+          (config) => Right(config.copy(parallelRun = true)),
+      ),
+      CliOpt.Flag(
+        OptId.long("no-parallel-init"),
+        "Execute project setup and terraform init in parallel. So you can process independent groups of terraform modules in parallel.",
+        (config) => Right(config.copy(parallelInit = false)),
       ),
       CliOpt.Flag(
         OptId("y", "yes"),
-        "Automatically say yes to all talpini prompts. This has no influence on terraform prompts. Example for apply without any user-prompts: talpini -y --run-all apply -auto-approve.",
+        "Automatically say yes to all talpini prompts. This has no influence on terraform prompts. Example for apply without any user-prompts: talpini -y apply -auto-approve.",
         config => Right(config.copy(prompt = false)),
       ),
       CliOpt.Flag(
@@ -67,17 +73,17 @@ object AppConfig {
       ),
       CliOpt.Arg(
         OptId.long("auto-include"),
-        "Per default files called talpini.yml (or .yaml) above the directory are auto-included. You can add additional auto-include files, e.g. --auto-include dev.yml.",
+        "Per default files called talpini.yml (or .yaml) within and above the current directory are auto-included. You can add additional auto-includes, e.g. --auto-include dev.yml.",
         (config, arg) => Right(config.copy(autoIncludes = config.autoIncludes :+ arg)),
       ),
       CliOpt.Arg(
         OptId.long("init-arg"),
-        "Set which args to append to terraform init.",
+        "Specify which args to append to terraform init.",
         (config, arg) => Right(config.copy(terraformInitArgs = config.terraformInitArgs :+ arg)),
       ),
       CliOpt.Arg(
         OptId.long("terraform-cmd"),
-        "Set which terraform command to execute.",
+        "Specify which terraform command to execute.",
         (config, arg) => Right(config.copy(terraformCmd = arg)),
       ),
       CliOpt.Flag(

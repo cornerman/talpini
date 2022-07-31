@@ -61,7 +61,7 @@ private object Extensions {
       IO.fromPromise(IO(sendJS(message)(command)))
   }
 
-  // TODO: add sugar for set interface of scalablytyped to apply options...
+  // add sugar for set interface of scalablytyped to apply options...
   implicit class SetterSugar[T <: StObject](private val self: T) extends AnyVal {
     def opt[A](option: js.UndefOr[A])(f: (T, A) => T): T = option.fold(self)(a => f(self, a))
     def opt[A](option: Option[A])(f: (T, A) => T): T     = option.fold(self)(a => f(self, a))

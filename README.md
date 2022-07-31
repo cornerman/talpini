@@ -20,7 +20,7 @@ Options:
 	-v|--version - show version.
 	-t|--target <arg> - Select target file/directory (default: ./). in case of a file, it only runs on this file. If you specify a directory, it recursively searches for any *.t.yml (or yaml) file.
 	-p|--parallelism <arg> - Specify the number of parallel runs. So you can process independent groups of terraform modules in parallel. stdin is disabled - so you cannot confirm user-prompts from terraform.
-	-y|--yes - Automatically say yes to all talpini prompts. This has no influence on terraform prompts. Example for apply without any user-prompts: talpini -y --run-all apply -auto-approve.
+	-y|--yes - Automatically say yes to all talpini prompts. This has no influence on terraform prompts. Example for apply without any user-prompts: talpini -y apply -auto-approve.
 	-q|--quiet - Only write errors to stderr and plain terraform output to stdout. Set log-level to error.
 	-l|--log-level <arg> - Select log level: trace, debug, info (default), warn, error.
 	--auto-include <arg> - Per default files called talpini.yml (or .yaml) above the directory are auto-included. You can add additional auto-include files, e.g. --auto-include dev.yml.
