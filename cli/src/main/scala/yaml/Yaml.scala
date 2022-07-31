@@ -58,14 +58,6 @@ object Yaml {
     new JsYamlNode.Overwrite(any.asInstanceOf[js.Any])
   }
 
-  val resolveTpl: js.Function1[Any, Boolean] = { any =>
-    JsNative.isString(any.asInstanceOf[js.Any])
-  }
-
-  val constructTpl: js.Function2[Any, UndefOr[String], Any] = { (any, _) =>
-    new JsYamlNode.Code("`" + any.asInstanceOf[String] + "`", nullable = false)
-  }
-
   val resolveJsNullable: js.Function1[Any, Boolean] = { any =>
     JsNative.isString(any.asInstanceOf[js.Any])
   }
@@ -157,13 +149,6 @@ object Yaml {
         .setKind(jsYamlStrings.scalar)
         .setResolve(resolveJs)
         .setConstruct(constructJs),
-    ),
-    new Type(
-      tagNameTpl,
-      TypeConstructorOptions()
-        .setKind(jsYamlStrings.scalar)
-        .setResolve(resolveTpl)
-        .setConstruct(constructTpl),
     ),
     new Type(
       tagNameMerge,

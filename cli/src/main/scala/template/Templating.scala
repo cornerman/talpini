@@ -61,9 +61,14 @@ object Templating {
       )
 
       def jsReplacer(any: js.Any, inheritParams: Seq[js.Dictionary[js.Any]]): js.Any = any match {
+        case s if JsNative.isString(s)                                   =>
+          jsReplacer(new JsYamlNode.Code("`" + s.asInstanceOf[String] + "`", nullable = false), inheritParams)
         case o: JsYamlNode.Code                                   =>
           val evalScope = Proxy.lookup(inheritParams)
-          val result = jsReplacer(Eval.evalBound(evalScope)(o.code), inheritParams)
+          val evalResult = Eval.evalBound(evalScope)(o.code)
+          val result =
+            if (JsNative.isPrimitive(evalResult))  evalResult
+            else jsReplacer(evalResult, inheritParams)
           if (o.nullable || JsNative.isDefined(result)) result
           else new JsYamlNode.Required
         case o: JsYamlNode.Params                                 =>

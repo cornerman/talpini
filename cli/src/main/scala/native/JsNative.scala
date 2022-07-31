@@ -15,6 +15,7 @@ object JsNative {
   def isString(o: Any): Boolean   = isDefined(o) && js.typeOf(o) == "string"
   def isBoolean(o: Any): Boolean  = isDefined(o) && js.typeOf(o) == "boolean"
   def isNumber(o: Any): Boolean   = isDefined(o) && js.typeOf(o) == "number"
+  def isPrimitive(o: Any): Boolean   = !isDefined(o) || isString(o) || isNumber(o) || isBoolean(o)
 
   def deepMergeObjects(dictA: js.Dictionary[js.Any], dictB: js.Dictionary[js.Any]): js.Dictionary[js.Any] = {
     val allKeys = dictA.keySet ++ dictB.keySet

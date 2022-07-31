@@ -46,7 +46,7 @@ values:
   aws_region: eu-central-1
   aws_profile: johannes-private
   aws_account: 373988118548
-  aws_assume_role_arn: !js '`arn:aws:iam::${values.aws_account}:role/OrganizationAccountAccessRole`'
+  aws_assume_role_arn: 'arn:aws:iam::${values.aws_account}:role/OrganizationAccountAccessRole'
 
   project_name: "example"
 
@@ -69,7 +69,7 @@ values:
   environmentjsl: !js |
     env.TM_ENVIRONMENT ? env.TM_ENVIRONMENT : "default"
   environmentjsx: !js '`${env.TM_ENVIRONMENT}/${values.project_name}/foo`'
-  environmentjsy: !s ${env.TM_ENVIRONMENT}/${values.project_name}/foo
+  environmentjsy: ${env.TM_ENVIRONMENT}/${values.project_name}/foo
   config_all:
     staging:
       name: "StagingName"
@@ -139,9 +139,9 @@ values:
 backend:
   type: s3
   region: !js values.aws_region
-  bucket: !js '`${values.aws_account}-terraform-state`'
+  bucket: "${values.aws_account}-terraform-state"
   dynamodb_table: "terraform-lock"
-  key: !s '${values.project_name}/${paths.dir_from_root}/${info.name}.tfstate'
+  key: '${values.project_name}/${paths.dir_from_root}/${info.name}.tfstate'
   encrypt: true
   role_arn: !js values.aws_assume_role_arn
   profile: !js values.aws_profile
