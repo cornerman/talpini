@@ -1,8 +1,9 @@
 package talpini.template
 
 import native.JsHttp
-import talpini.native.JsNative
 import t.yaml.Yaml
+import talpini.cli.UserPrompt
+import talpini.native.JsNative
 import typings.node.bufferMod.global.BufferEncoding
 import typings.node.{fsMod, processMod}
 
@@ -18,6 +19,10 @@ object TemplateApi extends js.Object {
 
   val http: js.Object = js.Dynamic.literal(
     getText = JsHttp.getText,
+  )
+
+  val prompt: js.Object = js.Dynamic.literal(
+    question = (s => UserPrompt.questionCached("\n" + s)): js.Function1[String, String],
   )
 
   val yaml: js.Function1[js.Array[String] | String, js.Any] = { arg =>

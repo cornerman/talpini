@@ -51,7 +51,7 @@ object Runner {
       )
 
   def selectDependencyGroups(requestedTargetFiles: Set[String], appConfig: AppConfig, targetConfigs: List[LoadedConfigRaw]) =
-    DependencyGraph.resolve(appConfig, targetConfigs).flatTraverse { dependencyGraph =>
+    DependencyGraph.resolve(appConfig, targetConfigs).flatMap { dependencyGraph =>
       val allTargetFiles = dependencyGraph.entries.flatMap(_.map(_.config.filePath)).toSet
       val allRequestedTargetFiles = allTargetFiles.intersect(requestedTargetFiles)
 
@@ -62,11 +62,11 @@ object Runner {
       Logger.info(Colors.yellow("\nDependency graph:") + dependencyLog)
 
       val userConfirmed = UserPrompt
-        .confirmIf(appConfig.prompt && appConfig.runAll && allTargetFiles.size > allRequestedTargetFiles.size)(
+        .confirmIf(appConfig.prompt && allTargetFiles.size > allRequestedTargetFiles.size)(
           Colors.red(s"\nAre you sure you want to run on all ${allTargetFiles.size} target files?"),
         )
 
-      userConfirmed.map {
+      userConfirmed match {
         case true => Right(dependencyGraph.entries)
         case false => Left("User aborted.")
       }
@@ -128,7 +128,7 @@ object Runner {
         IO.pure(ExitCode.Error)
       case Right(targetConfigs) =>
         val requestedTargetFiles = targetConfigs.map(_.filePath).toSet
-        selectDependencyGroups(requestedTargetFiles, appConfig, targetConfigs).flatMap {
+        selectDependencyGroups(requestedTargetFiles, appConfig, targetConfigs) match {
           case Left(error)         =>
             Logger.error(s"Error resolving dependencies: $error")
             IO.pure(ExitCode.Error)

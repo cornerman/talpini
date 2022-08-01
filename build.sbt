@@ -56,6 +56,8 @@ lazy val cli = project
     Compile / npmDependencies      ++= Seq(
       "glob"                              -> "8.0.3",
       "@types/glob"                       -> "7.2.0",
+      "readline-sync"                     -> "1.4.10",
+      "@types/readline-sync"              -> "1.4.4",
       "colors"                            -> "1.4.0",
       "@aws-sdk/client-s3"                -> "3.110.0",
       "@aws-sdk/client-dynamodb"          -> "3.110.0",

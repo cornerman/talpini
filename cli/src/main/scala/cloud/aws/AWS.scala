@@ -244,7 +244,7 @@ object AWS {
            |${Colors.red("Should talpini create it for you?")}""".stripMargin,
       )
 
-      userConfirm.flatMap {
+      userConfirm match {
         case true  => createBucket.unlessA(bucketExists).void &> createTable.unlessA(tableExists).void
         case false => IO.unit
       }

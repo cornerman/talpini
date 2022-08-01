@@ -1,23 +1,18 @@
 package talpini.cli
 
-import cats.effect.IO
-import typings.node.NodeJS.{ReadableStream, WritableStream}
-import typings.node.processMod.global.process
-import typings.node.readlineMod
+import typings.readlineSync.{mod => readlineSync}
+
+import scala.collection.mutable
 
 object UserPrompt {
+  private val questionCache = mutable.HashMap.empty[String,String]
 
-  private val readline = readlineMod.createInterface(process.stdin.asInstanceOf[ReadableStream], process.stdout.asInstanceOf[WritableStream])
+  def question(question: String): String = readlineSync.question(question)
 
-  def confirmIf(when: Boolean)(question: String): IO[Boolean] = if (when) {
-    val askUser = IO.async_[String](cb => readline.question(question + " (y/N): ", data => cb(Right(data))))
+  def questionCached(question: String) = questionCache.getOrElseUpdate(question, this.question(question))
 
-    askUser.map {
-      case "y" | "yes" => true
-      case _           => false
-    }
-  }
-  else IO.pure(true)
+  def confirmIf(when: Boolean)(question: String): Boolean =
+    !when || readlineSync.keyInYNStrict(question) == true
 
-  def confirmAlways(question: String): IO[Boolean] = confirmIf(true)(question)
+  def confirmAlways(question: String): Boolean = confirmIf(true)(question)
 }

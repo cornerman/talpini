@@ -1,4 +1,4 @@
 values:
-  environment: "staging"
+  environment: !js "env.ENVIRONMENT || prompt.question('Environment: ')"
 
   version: !required
