@@ -57,7 +57,7 @@ object Runner {
       Logger.info(Colors.yellow("\nDependency graph:") + dependencyLog)
 
       val userConfirmed = UserPrompt
-        .confirmIf(appConfig.prompt && allTargetFiles.size > allRequestedTargetFiles.size)(
+        .confirmIf(appConfig.prompt && appConfig.runAll && allTargetFiles.size > allRequestedTargetFiles.size)(
           Colors.red(s"\nAre you sure you want to run on all ${allTargetFiles.size} target files?"),
         )
 
