@@ -27,14 +27,11 @@ object Runner {
         .rethrow
     } yield ()
 
-  def runOutput(appConfig: AppConfig, config: LoadedConfig, needOutput: Boolean): IO[Option[js.Any]] =
+  def runOutput(appConfig: AppConfig, config: LoadedConfig): IO[Option[js.Any]] =
     for {
-      output      <-
-        if (needOutput) TerraformExecutor.terraformToOutput(appConfig, config.nameRelative, config.terraformPath, List("output", "-json")).map(Some.apply)
-        else IO.none
-      decoded     <- output.traverse(s => IO(js.JSON.parse(s).asInstanceOf[js.Dictionary[js.Dictionary[js.Any]]]))
-      decodedValue = decoded.flatMap(_.get(TerraformProject.outputName)).flatMap(_.get("value"))
-    } yield decodedValue
+      output      <- TerraformExecutor.terraformToOutput(appConfig, config.nameRelative, config.terraformPath, List("output", "-json"))
+      decoded     <- IO(js.JSON.parse(output).asInstanceOf[js.Dictionary[js.Dictionary[js.Any]]])
+    } yield decoded.get(TerraformProject.outputName).flatMap(_.get("value"))
 
   def runConfig(requestedTargetFiles: Set[String], appConfig: AppConfig, config: LoadedConfig): IO[Unit] =
       IO.whenA(appConfig.commands.nonEmpty && (appConfig.runAll || requestedTargetFiles.contains(config.filePath)))(
@@ -71,12 +68,12 @@ object Runner {
     }
 
   def runOverTargets(requestedTargetFiles: Set[String], appConfig: AppConfig, dependencies: Seq[Seq[DependencyGraphEntry]]): IO[Unit] = {
-    val shouldReverseRun = appConfig.commands.contains("destroy")
+    val isDestroyRun = appConfig.commands.contains("destroy")
 
     val allOutputs = mutable.HashMap.empty[String, js.Any]
 
-    val resolvedConfigs: IO[Seq[Seq[LoadedConfig]]] = dependencies.traverse { dependencyBatch =>
-      val resolvedConfigs = dependencyBatch
+    val executedConfigs: IO[Seq[Seq[LoadedConfig]]] = dependencies.traverse { dependencyBatch =>
+      val initializedConfigs: IO[Seq[(DependencyGraphEntry, LoadedConfig)]] = dependencyBatch
         .parTraverseIf(appConfig.parallelInit) { dependency =>
           val contextDependencies = dependency.loadedConfig.config.dependencies.map(_.toMap.flatMap { case (name, file) =>
             val absoluteFile = pathMod.resolve(dependency.loadedConfig.dirPath, file)
@@ -94,28 +91,28 @@ object Runner {
           }.map((dependency, _))
         }
 
-      resolvedConfigs
-        .flatMap(_.parTraverseIf(appConfig.parallelRun) { case (dependency, config) =>
-          val run =
-            IO.unlessA(shouldReverseRun)(runConfig(requestedTargetFiles, appConfig, config)) *>
-              //TODO potential optimization: parse output from run
-              runOutput(appConfig, config, needOutput = dependency.hasDependee).map(_.map(config.filePath -> _))
-
-          run
-            .flatTap(_.traverse_ { case (k, v) => IO(allOutputs.update(k, v)) })
-            .as(config)
+      val executedConfigs: IO[Seq[(DependencyGraphEntry, LoadedConfig)]] =
+        if (isDestroyRun) initializedConfigs
+        else initializedConfigs.flatMap(_.parTraverseIf(appConfig.parallelRun) { case input@(dependency, config) =>
+          runConfig(requestedTargetFiles, appConfig, config).as(input)
         })
 
-
+      executedConfigs.flatMap(_.parTraverseIf(appConfig.parallelInit) { case (dependency, config) =>
+        IO.whenA(dependency.hasDependee)(
+          //TODO potential optimization: parse output from run
+          runOutput(appConfig, config)
+            .flatMap(_.traverse_(output => IO(allOutputs.update(config.filePath, output))))
+        ).as(config)
+      })
     }
 
-    resolvedConfigs.flatMap { dependencies =>
-      IO.whenA(shouldReverseRun)(dependencies.reverse.traverse_ { dependencyBatch =>
+    if (isDestroyRun) executedConfigs.flatMap { dependencies =>
+      dependencies.reverse.traverse_ { dependencyBatch =>
         dependencyBatch.parTraverseIf(appConfig.parallelRun) { config =>
-          runConfig(requestedTargetFiles, appConfig, config)
+          runConfig(requestedTargetFiles, appConfig, config).as(config)
         }
-      })
-    }.void
+      }
+    } else executedConfigs.void
   }
 
   def program(appConfig: AppConfig): IO[ExitCode] = {
