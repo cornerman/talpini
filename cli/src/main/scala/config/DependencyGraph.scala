@@ -3,7 +3,7 @@ package talpini.config
 import talpini.AppConfig
 import typings.node.pathMod
 
-case class DependencyGraphEntry(config: LoadedConfigRaw, hasDependee: Boolean)
+case class DependencyGraphEntry(loadedConfig: LoadedConfigRaw, hasDependee: Boolean)
 
 case class DependencyGraph(entries: Seq[Seq[DependencyGraphEntry]])
 
@@ -29,7 +29,7 @@ object DependencyGraph {
       marked.foreach(todo.enqueue(_))
       marked.clear()
       if (batches.lastOption.forall(_.nonEmpty)) {
-        batches.lastOption.foreach(_.foreach(c => seenPaths += c.config.filePath))
+        batches.lastOption.foreach(_.foreach(c => seenPaths += c.loadedConfig.filePath))
         batches += collection.mutable.ArrayBuffer[DependencyGraphEntry]()
       }
     }

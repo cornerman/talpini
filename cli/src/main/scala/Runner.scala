@@ -50,11 +50,11 @@ object Runner {
 
   def selectDependencyGroups(requestedTargetFiles: Set[String], appConfig: AppConfig, targetConfigs: List[LoadedConfigRaw]) =
     DependencyGraph.resolve(appConfig, targetConfigs).flatMap { dependencyGraph =>
-      val allTargetFiles = dependencyGraph.entries.flatMap(_.map(_.config.filePath)).toSet
+      val allTargetFiles = dependencyGraph.entries.flatMap(_.map(_.loadedConfig.filePath)).toSet
       val allRequestedTargetFiles = allTargetFiles.intersect(requestedTargetFiles)
 
       val dependencyLog = dependencyGraph.entries.zipWithIndex.map { case (d, i) =>
-        s"Group ${i + 1} ${d.map(_.config.filePathRelative).mkString("\n\t- ", "\n\t- ", "")}"
+        s"Group ${i + 1} ${d.map(_.loadedConfig.filePathRelative).mkString("\n\t- ", "\n\t- ", "")}"
       }.mkString("\n\n- ", "\n- ", "")
 
       Logger.info(Colors.yellow("\nDependency graph:") + dependencyLog)
@@ -78,8 +78,8 @@ object Runner {
     val resolvedConfigs: IO[Seq[Seq[LoadedConfig]]] = dependencies.traverse { dependencyBatch =>
       val resolvedConfigs = dependencyBatch
         .parTraverseIf(appConfig.parallelInit) { dependency =>
-          val contextDependencies = dependency.config.config.dependencies.map(_.toMap.flatMap { case (name, file) =>
-            val absoluteFile = pathMod.resolve(dependency.config.dirPath, file)
+          val contextDependencies = dependency.loadedConfig.config.dependencies.map(_.toMap.flatMap { case (name, file) =>
+            val absoluteFile = pathMod.resolve(dependency.loadedConfig.dirPath, file)
             allOutputs.get(absoluteFile).map(name -> _)
           })
 
@@ -87,7 +87,7 @@ object Runner {
             dependencyOutputs = contextDependencies.getOrElse(Map.empty),
           )
 
-          val resolvedConfig = Templating.replaceVariables(dependency.config, context)
+          val resolvedConfig = Templating.replaceVariables(dependency.loadedConfig, context)
 
           resolvedConfig.flatTap { config =>
             runInit(appConfig, config)
@@ -98,13 +98,15 @@ object Runner {
         .flatMap(_.parTraverseIf(appConfig.parallelRun) { case (dependency, config) =>
           val run =
             IO.unlessA(shouldReverseRun)(runConfig(requestedTargetFiles, appConfig, config)) *>
-              //TODO potential optimization: parse output from config
+              //TODO potential optimization: parse output from run
               runOutput(appConfig, config, needOutput = dependency.hasDependee).map(_.map(config.filePath -> _))
 
           run
             .flatTap(_.traverse_ { case (k, v) => IO(allOutputs.update(k, v)) })
             .as(config)
         })
+
+
     }
 
     resolvedConfigs.flatMap { dependencies =>
