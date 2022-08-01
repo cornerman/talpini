@@ -2,19 +2,16 @@ package talpini.template
 
 import cats.effect.IO
 import cats.implicits._
-import native.JsHttp
+import t.yaml._
 import talpini.AppConfig
 import talpini.config._
 import talpini.native._
 import talpini.proxy.Proxy
-import t.yaml._
-import typings.node.bufferMod.global.BufferEncoding
-import typings.node.{fsMod, pathMod, processMod}
+import typings.node.pathMod
 
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters._
 import scala.scalajs.js.annotation.JSImport
-import scala.scalajs.js.|
 
 @JSImport("../../../../src/main/js/Eval.js", JSImport.Namespace)
 @js.native

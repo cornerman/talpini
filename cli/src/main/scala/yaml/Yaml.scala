@@ -6,7 +6,7 @@ import typings.jsYaml.{jsYamlStrings, mod => jsYaml}
 
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters._
-import scala.scalajs.js.{|, UndefOr}
+import scala.scalajs.js.{UndefOr, |}
 
 object JsYamlNode {
   class Params(val node: js.Any, val params: js.Dictionary[js.Any]) extends js.Object {

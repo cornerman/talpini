@@ -1,7 +1,7 @@
 package talpini.proxy
 
-import talpini.native.JsNative
 import t.yaml.JsYamlNode
+import talpini.native.JsNative
 
 import scala.scalajs.js
 import scala.scalajs.js.PropertyDescriptor

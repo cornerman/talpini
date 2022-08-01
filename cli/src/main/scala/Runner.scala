@@ -1,18 +1,16 @@
 package talpini
 
-import talpini.implicits._
-import cats.{Monad, Traverse}
-import cats.effect.implicits._
 import cats.effect.{ExitCode, IO}
 import cats.implicits._
+import t.yaml.Yaml
 import talpini.cli.UserPrompt
-import talpini.config.{ConfigReader, Context, DependencyGraph, DependencyGraphEntry, LoadedConfig, LoadedConfigRaw}
+import talpini.config._
+import talpini.implicits._
 import talpini.logging.Logger
 import talpini.template.Templating
 import talpini.terraform.{TerraformExecutor, TerraformProject}
-import typings.node.pathMod
 import typings.colors.{safeMod => Colors}
-import t.yaml.Yaml
+import typings.node.pathMod
 
 import scala.collection.mutable
 import scala.scalajs.js

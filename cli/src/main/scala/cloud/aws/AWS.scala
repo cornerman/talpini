@@ -10,14 +10,7 @@ import typings.awsSdkClientDynamodb.dynamoDBClientMod.DynamoDBClientConfig
 import typings.awsSdkClientDynamodb.mod.{CreateTableCommand, DescribeTableCommand, DynamoDBClient}
 import typings.awsSdkClientDynamodb.models0Mod._
 import typings.awsSdkClientS3.mod._
-import typings.awsSdkClientS3.models0Mod.{
-  CreateBucketRequest,
-  HeadBucketRequest,
-  PublicAccessBlockConfiguration,
-  PutBucketVersioningRequest,
-  VersioningConfiguration,
-  _,
-}
+import typings.awsSdkClientS3.models0Mod.{CreateBucketRequest, HeadBucketRequest, PublicAccessBlockConfiguration, PutBucketVersioningRequest, VersioningConfiguration, _}
 import typings.awsSdkClientS3.models1Mod.PutPublicAccessBlockRequest
 import typings.awsSdkClientS3.s3ClientMod.S3ClientConfig
 import typings.awsSdkClientSts.assumeRoleCommandMod.{AssumeRoleCommandInput, AssumeRoleCommandOutput}

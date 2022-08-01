@@ -1,7 +1,6 @@
 package talpini.cloud
 
 import cats.effect.IO
-import cats.implicits._
 import talpini.cloud.aws.AWS
 import talpini.config.ConfigBackend
 import talpini.logging.Logger

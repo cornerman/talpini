@@ -1,9 +1,9 @@
 package talpini.config
 
 import cats.implicits._
+import t.yaml.Yaml
 import talpini.AppConfig
 import talpini.native.JsNative
-import t.yaml.Yaml
 import typings.glob.{mod => glob}
 import typings.node.bufferMod.global.BufferEncoding
 import typings.node.{fsMod, pathMod}
