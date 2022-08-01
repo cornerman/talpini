@@ -79,7 +79,7 @@ object ConfigReader {
 
   def readAllConfigsForTargetFile(appConfig: AppConfig, file: String): Either[String, List[LoadedConfigRaw]] = for {
     companionFiles   <- findCompanionFiles(appConfig, file)
-    companionConfigs <- companionFiles.toSeq.flatTraverse(readConfigFromYamlWithIncludes(appConfig, _))
+    companionConfigs <- companionFiles.flatTraverse(readConfigFromYamlWithIncludes(appConfig, _))
     configs          <- readConfigFromYamlWithIncludes(appConfig, file)
   } yield (companionConfigs ++ configs).map(c => companionFiles.headOption.fold(c)(f => c.copy(rootPath = pathMod.dirname(f))))
 
