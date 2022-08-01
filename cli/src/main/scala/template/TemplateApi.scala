@@ -6,6 +6,7 @@ import talpini.cli.UserPrompt
 import talpini.native.JsNative
 import typings.node.bufferMod.global.BufferEncoding
 import typings.node.{fsMod, processMod}
+import typings.colors.{mod => Colors}
 
 import scala.scalajs.js
 import scala.scalajs.js.|
@@ -22,7 +23,9 @@ object TemplateApi extends js.Object {
   )
 
   val prompt: js.Object = js.Dynamic.literal(
-    question = (s => UserPrompt.questionCached("\n" + s)): js.Function1[String, String],
+    question = { s =>
+      UserPrompt.questionCached(s"\n${Colors.green("User input requested")}\n" + s)
+    }: js.Function1[String, String]
   )
 
   val yaml: js.Function1[js.Array[String] | String, js.Any] = { arg =>
