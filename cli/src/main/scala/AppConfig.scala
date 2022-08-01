@@ -97,7 +97,8 @@ object AppConfig {
         config => Right(config.copy(cache = false)),
       ),
     ),
-    tail = CliTail.Args(
+    tail = CliTail.ArgsWithSeparator(
+      "--",
       "any terraform arguments.",
       (config, args) => Right(config.copy(commands = args)),
     ),
