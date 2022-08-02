@@ -227,7 +227,7 @@ object AWS {
     val callerIdentity = stsClient.sendIO("Get aws caller identity")(new GetCallerIdentityCommand(js.Object().asInstanceOf[GetCallerIdentityRequest]))
 
     (bucketExists, tableExists, callerIdentity).parTupled.flatMap { case (bucketExists, tableExists, callerIdentity) =>
-      val userConfirm = UserPrompt.confirmIf(!bucketExists || !tableExists)(
+      val userConfirm = (bucketExists && tableExists) || UserPrompt.confirm(
         s"""
            |Your configured s3 backend does not exist yet inside the aws account '${callerIdentity.Account}'.
            |

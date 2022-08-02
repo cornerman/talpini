@@ -1,4 +1,8 @@
 values:
-  environment: !js "env.ENVIRONMENT || prompt.question('Environment: ')"
+  environment: !js "env.ENVIRONMENT || prompt.choose('Environment: ', ['staging', 'prod'])"
+  # environment0: !js "prompt.question('question: ')"
+  # environment1: !js "prompt.choose('chooose: ', ['Hans', 'Peter'])"
+  # environment2: !js "prompt.confirm('bool: ')"
+  # environment3: !js "prompt.questionInt('int: ')"
 
   version: !required
