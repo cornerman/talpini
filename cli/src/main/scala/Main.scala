@@ -38,7 +38,7 @@ object Main extends IOApp {
             Runner.program(appConfig)
               .recover { case err =>
                 Logger.error(s"\n${Colors.red("Cannot continue, there was an error :/")}\n\n\t${err.getMessage}")
-                ExitCode.Success
+                ExitCode.Error
               }
         }
     }
