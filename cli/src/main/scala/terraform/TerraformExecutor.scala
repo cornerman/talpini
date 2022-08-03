@@ -130,8 +130,8 @@ object TerraformExecutor {
         )
 
       if (forwardStdIn) {
-        processMod.stdin.asInstanceOf[js.Dynamic].setRawMode(false)
-        processMod.stdin.asInstanceOf[ReadableStream].pipe(childProcess.stdin, End().setEnd(false))
+        processMod.stdin.asInstanceOf[js.UndefOr[js.Dynamic]].foreach(_.setRawMode(false))
+        processMod.stdin.asInstanceOf[js.UndefOr[ReadableStream]].foreach(_.pipe(childProcess.stdin, End().setEnd(false)))
       }
 
       val _ = childProcess
