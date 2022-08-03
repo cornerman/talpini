@@ -133,8 +133,9 @@ object TerraformExecutor {
         processMod.stdin.asInstanceOf[js.Dynamic].setRawMode.asInstanceOf[js.UndefOr[js.Function1[Boolean, Unit]]].fold {
           Logger.warn("Failed to forward stdin to terraform process")
         } { setRawMode =>
-          setRawMode(false)
+          setRawMode.call(processMod.stdin, false)
           processMod.stdin.asInstanceOf[ReadableStream].pipe(childProcess.stdin, End().setEnd(false))
+          ()
         }
       }
 
