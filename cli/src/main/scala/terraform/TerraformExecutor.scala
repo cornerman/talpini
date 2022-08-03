@@ -130,8 +130,12 @@ object TerraformExecutor {
         )
 
       if (forwardStdIn) {
-        processMod.stdin.asInstanceOf[js.UndefOr[js.Dynamic]].foreach(_.setRawMode(false))
-        processMod.stdin.asInstanceOf[js.UndefOr[ReadableStream]].foreach(_.pipe(childProcess.stdin, End().setEnd(false)))
+        processMod.stdin.asInstanceOf[js.Dynamic].setRawMode.asInstanceOf[js.UndefOr[js.Function1[Boolean, Unit]]].fold {
+          Logger.warn("Failed to forward stdin to terraform process")
+        } { setRawMode =>
+          setRawMode(false)
+          processMod.stdin.asInstanceOf[ReadableStream].pipe(childProcess.stdin, End().setEnd(false))
+        }
       }
 
       val _ = childProcess
