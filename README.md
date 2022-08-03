@@ -28,9 +28,11 @@ Options:
 	--init-arg <arg> - Specify which args to append to terraform init.
 	--terraform-cmd <arg> - Specify which terraform command to execute.
 	--run-all - Run on all dependent configuration, not just the ones specified by target.
-	--no-cache - Recreate cached terraform projects.```
+	--no-cache - Recreate cached terraform projects.
+```
 
 You can set all CLI options with environment variables as well:
+
 ```
 TALPINI_CLI_TARGET="<folder|file>"
 TALPINI_CLI_PARALLEL_RUN="true"
