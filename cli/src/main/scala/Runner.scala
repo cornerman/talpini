@@ -34,7 +34,7 @@ object Runner {
     } yield decoded.get(TerraformProject.outputName).flatMap(_.get("value"))
 
   def runConfig(requestedTargetFiles: Set[String], appConfig: AppConfig, config: LoadedConfig): IO[Unit] =
-      IO.whenA(appConfig.commands.nonEmpty && (appConfig.runAll || requestedTargetFiles.contains(config.filePath)))(
+      IO.whenA(appConfig.commands.nonEmpty && config.config.enabled && (appConfig.runAll || requestedTargetFiles.contains(config.filePath)))(
         IO(Logger.info(Colors.green(s"\nRun terraform: ${config.nameRelative}\n"))) *>
           TerraformExecutor.terraformInForeground(
             appConfig,
