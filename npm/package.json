@@ -1,6 +1,6 @@
 {
   "name": "talpini",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Use terraform with joy",
   "main": "./bin/talpini.js",
   "bin": {
