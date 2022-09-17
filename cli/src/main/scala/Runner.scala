@@ -76,25 +76,37 @@ object Runner {
     val executedConfigs: IO[Seq[Seq[LoadedConfig]]] = dependencies.traverse { dependencyBatch =>
       val initializedConfigs: IO[Seq[(DependencyGraphEntry, LoadedConfig)]] = dependencyBatch
         .parTraverseIf(appConfig.parallelInit) { dependency =>
-          val contextDependencies = dependency.loadedConfig.config.dependencies.map(_.toMap.flatMap { case (name, file) =>
+          val directDependencies = dependency.loadedConfig.config.dependencies.toList.flatMap(_.toList)
+          val directDependenciesOutputs = directDependencies.traverse { case (name, file) =>
             val absoluteFile = pathMod.resolve(dependency.loadedConfig.dirPath, file)
             allOutputs.get(absoluteFile).map(name -> _)
-          })
+          }
 
-          val context = Context(
-            dependencyOutputs = contextDependencies.getOrElse(Map.empty),
-          )
+          directDependenciesOutputs match {
+            case Some(dependencyOutputs) =>
+              val context = Context(
+                dependencyOutputs = dependencyOutputs.toMap
+              )
 
-          val resolvedConfig = Templating.replaceVariables(dependency.loadedConfig, context)
+              val resolvedConfig = Templating.replaceVariables(dependency.loadedConfig, context)
 
-          resolvedConfig.flatTap { config =>
-            runInit(appConfig, config)
-          }.map((dependency, _))
-        }
+              resolvedConfig.flatTap { config =>
+                runInit(appConfig, config)
+              }.map(c => Some(dependency -> c))
+
+            case None if isDestroyRun =>
+              Logger.info(s"Skipping module '${dependency.loadedConfig.name}', because its dependencies are already destroyed.")
+              IO.pure(None)
+
+            case None =>
+              Logger.error(s"Cannot generate module '${dependency.loadedConfig.name}', because its dependencies are missing. Run 'apply' with '--run-all' to apply this target with all its dependencies.")
+              IO.raiseError(new Exception(s"Missing dependencies for module '${dependency.loadedConfig.name}'"))
+          }
+        }.map(_.flatten)
 
       val executedConfigs: IO[Seq[(DependencyGraphEntry, LoadedConfig)]] =
         if (isDestroyRun) initializedConfigs
-        else initializedConfigs.flatMap(_.parTraverseIf(appConfig.parallelRun) { case input@(dependency, config) =>
+        else initializedConfigs.flatMap(_.parTraverseIf(appConfig.parallelRun) { case input@(_, config) =>
           runConfig(requestedTargetFiles, appConfig, config).as(input)
         })
 
