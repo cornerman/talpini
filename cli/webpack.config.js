@@ -1,16 +1,5 @@
-const webpack = require('webpack');
-const path = require('path');
-const fs = require('fs');
+const {binProd} = require("@fun-stack/fun-pack");
 
-module.exports = require('./scalajs.webpack.config');
-
-module.exports.output.filename = "talpini.js";
-module.exports.target = "node";
-module.exports.plugins = module.exports.plugins || [];
-module.exports.plugins.push(new webpack.BannerPlugin({
-  banner: '#!/usr/bin/env -S node --enable-source-maps',
-  raw: true,
-}));
-module.exports.plugins.push(function () {
-  this.plugin('done', () => fs.chmodSync('talpini.js', '755'))
+module.exports = binProd({
+  fileName: "talpini.js"
 });

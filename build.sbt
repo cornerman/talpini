@@ -70,6 +70,7 @@ lazy val cli = project
       "aws-sdk"                           -> "2.892.0",
     ),
     Compile / npmDevDependencies   ++= Seq(
+      "@fun-stack/fun-pack" -> "0.2.5"
     ),
     // TODO: workaround for https://github.com/aws/aws-sdk-js-v3/issues/3505#issuecomment-1154139931
     Compile / additionalNpmConfig   := Map(
