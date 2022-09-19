@@ -24,7 +24,7 @@ case class ConfigRunException(msg: String) extends Exception(s"Configuration Err
 
 object Templating {
 
-  def replaceVariables(loadedConfig: LoadedConfigRaw, context: Context): IO[LoadedConfig] = {
+  def replaceVariables(loadedConfig: LoadedConfigRaw, context: Context): IO[LoadedConfig] = IO.defer {
     val configProxy: js.Any = {
 
       val dependencies: js.Any = context.dependencyOutputs.toJSDictionary
@@ -57,39 +57,37 @@ object Templating {
         ),
       )
 
-      def jsReplacer(any: js.Any, inheritParams: Seq[js.Dictionary[js.Any]]): js.Any = any match {
+      def jsReplacer(path: List[String], any: js.Any, inheritParams: Seq[js.Dictionary[js.Any]]): js.Any = any match {
         case s if JsNative.isString(s)                                   =>
-          jsReplacer(new JsYamlNode.Code("`" + s.asInstanceOf[String] + "`", nullable = false), inheritParams)
+          jsReplacer(path, new JsYamlNode.Code("`" + s.asInstanceOf[String] + "`", nullable = false), inheritParams)
         case o: JsYamlNode.Code                                   =>
           val evalScope = Proxy.lookup(inheritParams)
           val evalResult = Eval.evalBound(evalScope)(o.code)
           val result =
             if (JsNative.isPrimitive(evalResult))  evalResult
-            else jsReplacer(evalResult, inheritParams)
+            else jsReplacer(path, evalResult, inheritParams)
           if (o.nullable || JsNative.isDefined(result)) result
-          else new JsYamlNode.Required
+          else throw new ConfigRunException(s"Non-nullable field evaluates to null at ${path.reverse.mkString(".")} (in ${loadedConfig.filePathRelative}).")
         case o: JsYamlNode.Params                                 =>
-          jsReplacer(o.node, inheritParams :+ o.params)
+          jsReplacer(path, o.node, inheritParams :+ o.params)
         case o: JsYamlNode.Merge                                  =>
-          jsReplacer(o.nodes.map(jsReplacer(_, inheritParams)).reduce(JsNative.deepMerge(_, _)), inheritParams)
+          jsReplacer(path, o.nodes.map(jsReplacer(path, _, inheritParams)).reduce(JsNative.deepMerge(_, _)), inheritParams)
         case fun if JsNative.isFunction(fun)                      =>
           Eval.argumentsFunction { args =>
-            jsReplacer(fun.asInstanceOf[js.Function].call(js.undefined, args.toSeq: _*), inheritParams)
+            jsReplacer("()" :: path, fun.asInstanceOf[js.Function].call(js.undefined, args.toSeq: _*), inheritParams)
           }
         case pro if JsNative.isPromise(pro)                       =>
-          pro.asInstanceOf[js.Dynamic].`then`(jsReplacer(_, inheritParams))
+          pro.asInstanceOf[js.Dynamic].`then`(jsReplacer("<then>" :: path, _, inheritParams))
         case arr if JsNative.isArray(arr)                         =>
-          // arr.asInstanceOf[js.Array[js.Any]].map(jsReplacer(_, inheritParams))
-          Proxy.lazyTransform(arr.asInstanceOf[js.Array[js.Any]], any => jsReplacer(any, inheritParams))
+          Proxy.lazyTransform(arr.asInstanceOf[js.Array[js.Any]], (key, any) => jsReplacer(s"[${key}]" :: path, any, inheritParams))
         case obj if JsNative.isObject(obj) && !JsYamlNode.is(obj) =>
-          // obj.asInstanceOf[js.Dictionary[js.Any]].map { case (k, v) => k -> jsReplacer(v, inheritParams) }.toJSDictionary
-          Proxy.lazyTransform(any.asInstanceOf[js.Object], any => jsReplacer(any, inheritParams))
+          Proxy.lazyTransform(any.asInstanceOf[js.Object], (key, any) => jsReplacer(key :: path, any, inheritParams))
         case any                                                  =>
           any
       }
 
       var data: js.Dictionary[js.Any] = null
-      val configProxy                 = Proxy.lazyTransform(loadedConfig.config, any => jsReplacer(any, Seq(data))).asInstanceOf[js.Dictionary[js.Any]]
+      val configProxy                 = Proxy.lazyTransform(loadedConfig.config, (key, any) => jsReplacer(List(key), any, Seq(data))).asInstanceOf[js.Dictionary[js.Any]]
       data = Proxy.lookup(Seq(configProxy, api.asInstanceOf[js.Dictionary[js.Any]])).asInstanceOf[js.Dictionary[js.Any]]
 
       configProxy

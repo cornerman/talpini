@@ -38,7 +38,7 @@ object Proxy {
     proxy
   }
 
-  def lazyTransform[T](data: js.Object, transform: js.Any => js.Any): js.Any = {
+  def lazyTransform[T](data: js.Object, transform: (String, js.Any) => js.Any): js.Any = {
     val proxy: js.Object = if (JsNative.isArray(data)) js.Array[js.Any]() else js.Object()
 
     val resolved = js.Dictionary.empty[js.Any]
@@ -56,7 +56,7 @@ object Proxy {
             resolved.get(k) match {
               case Some(resolvedV) => resolvedV
               case None            =>
-                val result = transform(v.asInstanceOf[js.Any])
+                val result = transform(k, v.asInstanceOf[js.Any])
                 resolved.put(k, result)
                 result
             }

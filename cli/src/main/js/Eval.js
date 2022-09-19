@@ -13,7 +13,7 @@ function evalBound(data) {
     try {
       return eval(`with (this) { ${s} }`);
     } catch (e) {
-      console.error(`Failed to evaluate template code: ${s}`, e);
+      console.error(`Failed to evaluate template code: ${s}`);
       throw e;
     }
   }
