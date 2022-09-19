@@ -9,6 +9,7 @@ import talpini.implicits._
 import talpini.logging.Logger
 import talpini.template.Templating
 import talpini.terraform.{TerraformExecutor, TerraformProject}
+import talpini.native.ShellExecutor
 import typings.colors.{safeMod => Colors}
 import typings.node.pathMod
 
@@ -33,8 +34,17 @@ object Runner {
       decoded     <- IO(js.JSON.parse(output).asInstanceOf[js.Dictionary[js.Dictionary[js.Any]]])
     } yield decoded.get(TerraformProject.outputName).flatMap(_.get("value"))
 
-  def runConfig(requestedTargetFiles: Set[String], appConfig: AppConfig, config: LoadedConfig): IO[Unit] =
-      IO.whenA(appConfig.commands.nonEmpty && config.config.enabled && (appConfig.runAll || requestedTargetFiles.contains(config.filePath)))(
+  def runConfig(requestedTargetFiles: Set[String], appConfig: AppConfig, config: LoadedConfig): IO[Unit] = {
+    if (config.config.enabled && (appConfig.runAll || requestedTargetFiles.contains(config.filePath))) {
+      if (appConfig.launchShell) {
+        IO(Logger.info(Colors.green(s"\nLaunch shell: ${config.nameRelative}\n"))) *>
+          ShellExecutor.execute(
+            appConfig,
+            config.nameRelative,
+            config.terraformPath,
+            appConfig.commands,
+          )
+      } else if (appConfig.commands.nonEmpty) {
         IO(Logger.info(Colors.green(s"\nRun terraform: ${config.nameRelative}\n"))) *>
           TerraformExecutor.terraformInForeground(
             appConfig,
@@ -42,8 +52,10 @@ object Runner {
             config.terraformPath,
             appConfig.commands,
             forwardStdIn = !appConfig.parallelRun,
-          ),
-      )
+          )
+      } else IO.unit
+    } else IO.unit
+  }
 
   def selectDependencyGroups(requestedTargetFiles: Set[String], appConfig: AppConfig, targetConfigs: List[LoadedConfigRaw]) =
     DependencyGraph.resolve(appConfig, targetConfigs).flatMap { dependencyGraph =>

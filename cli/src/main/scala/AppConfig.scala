@@ -7,20 +7,21 @@ import talpini.logging.LogLevel
 import scala.scalajs.js
 
 case class AppConfig(
-  showVersion: Boolean = false,
-  showHelp: Boolean = false,
-  runAll: Boolean = false,
-  parallelRun: Boolean = false,
-  parallelInit: Boolean = true,
-  targets: List[String] = Nil,
-  autoIncludes: List[String] = List("talpini.yaml", "talpini.yml"),
-  commands: List[String] = Nil,
-  prompt: Boolean = true,
-  cache: Boolean = true,
-  logLevel: LogLevel = LogLevel.Info,
-  terraformCmd: String = "terraform",
-  terraformInitArgs: List[String] = List("-reconfigure"),
-  decorateTerraformOutput: Boolean = true,
+                      showVersion: Boolean = false,
+                      showHelp: Boolean = false,
+                      runAll: Boolean = false,
+                      parallelRun: Boolean = false,
+                      parallelInit: Boolean = true,
+                      targets: List[String] = Nil,
+                      autoIncludes: List[String] = List("talpini.yaml", "talpini.yml"),
+                      commands: List[String] = Nil,
+                      prompt: Boolean = true,
+                      cache: Boolean = true,
+                      logLevel: LogLevel = LogLevel.Info,
+                      terraformCmd: String = "terraform",
+                      terraformInitArgs: List[String] = List("-reconfigure"),
+                      launchShell: Boolean = false,
+                      decorateCommandOutput: Boolean = true,
 )
 object AppConfig {
 
@@ -63,8 +64,8 @@ object AppConfig {
       ),
       CliOpt.Flag(
         OptId("q", "quiet"),
-        "Only write errors to stderr and plain terraform output to stdout. Set log-level to error.",
-        config => Right(config.copy(logLevel = LogLevel.Error, decorateTerraformOutput = false)),
+        "Only write errors to stderr and plain command output to stdout. Set log-level to error.",
+        config => Right(config.copy(logLevel = LogLevel.Error, decorateCommandOutput = false)),
       ),
       CliOpt.Arg(
         OptId("l", "log-level"),
@@ -96,7 +97,12 @@ object AppConfig {
         "Recreate cached terraform projects.",
         config => Right(config.copy(cache = false)),
       ),
-    ),
+      CliOpt.Flag(
+        OptId.long("shell"),
+        "Go into generated terraform project inside your shell ($SHELL), exit or CTRL-D to continue to the next target.",
+        config => Right(config.copy(launchShell = true)),
+      )
+  ),
     tail = CliTail.ArgsWithSeparator(
       "--",
       "any terraform arguments.",
