@@ -91,11 +91,11 @@ object Runner {
           val directDependencies = dependency.loadedConfig.config.dependencies.toList.flatMap(_.toList)
           val directDependenciesOutputs = directDependencies.traverse { case (name, file) =>
             val absoluteFile = pathMod.resolve(dependency.loadedConfig.dirPath, file)
-            allOutputs.get(absoluteFile).map(name -> _)
+            allOutputs.get(absoluteFile).map(name -> _).toRightNel(name)
           }
 
           directDependenciesOutputs match {
-            case Some(dependencyOutputs) =>
+            case Right(dependencyOutputs) =>
               val context = Context(
                 dependencyOutputs = dependencyOutputs.toMap
               )
@@ -106,12 +106,12 @@ object Runner {
                 runInit(appConfig, config)
               }.map(c => Some(dependency -> c))
 
-            case None if isDestroyRun =>
-              Logger.info(s"Skipping module '${dependency.loadedConfig.name}', because its dependencies are already destroyed.")
+            case Left(missingNames) if isDestroyRun =>
+              Logger.info(s"Skipping module '${dependency.loadedConfig.name}', because its dependencies are already destroyed. Missing: ${missingNames.mkString_(", ")}")
               IO.pure(None)
 
-            case None =>
-              Logger.error(s"Cannot generate module '${dependency.loadedConfig.name}', because its dependencies are missing. Run 'apply' with '--run-all' to apply this target with all its dependencies.")
+            case Left(missingNames) =>
+              Logger.error(s"Cannot generate module '${dependency.loadedConfig.name}', because its dependencies are missing. Run 'apply' with '--run-all' to apply this target with all its dependencies. Missing: ${missingNames.mkString_(", ")}")
               IO.raiseError(new Exception(s"Missing dependencies for module '${dependency.loadedConfig.name}'"))
           }
         }.map(_.flatten)
