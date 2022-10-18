@@ -19,18 +19,13 @@ object DependencyGraph {
 
     val marked = collection.mutable.HashSet[LoadedConfigRaw]()
 
-    val dependees: Set[String] =
-      distinctConfigs
-        .flatMap(c => c.config.dependencies.toList.flatMap(_.values.map(ref => pathMod.resolve(pathMod.dirname(c.filePath), ref))))
-        .toSet
-
-    val batches          = collection.mutable.ArrayBuffer[collection.mutable.ArrayBuffer[DependencyGraphEntry]]()
+    val batches          = collection.mutable.ArrayBuffer[collection.mutable.ArrayBuffer[LoadedConfigRaw]]()
     def newBatch(): Unit = {
       marked.foreach(todo.enqueue(_))
       marked.clear()
       if (batches.lastOption.forall(_.nonEmpty)) {
-        batches.lastOption.foreach(_.foreach(c => seenPaths += c.loadedConfig.filePath))
-        batches += collection.mutable.ArrayBuffer[DependencyGraphEntry]()
+        batches.lastOption.foreach(_.foreach(c => seenPaths += c.filePath))
+        batches += collection.mutable.ArrayBuffer[LoadedConfigRaw]()
       }
     }
     newBatch()
@@ -42,7 +37,7 @@ object DependencyGraph {
         val depRefs              = config.config.dependencies.toList.flatMap(_.values.map(ref => pathMod.resolve(pathMod.dirname(config.filePath), ref)))
         val dependenciesResolved = depRefs.forall(seenPaths.contains)
         if (dependenciesResolved) {
-          batches.last += DependencyGraphEntry(config, dependees.contains(config.filePath))
+          batches.last += config
         }
         else {
           depRefs.foreach { depRef =>
@@ -70,7 +65,16 @@ object DependencyGraph {
 
     val batchesResult = batches.map(_.toSeq).toSeq.filter(_.nonEmpty)
 
-    if (marked.isEmpty) Right(DependencyGraph(batchesResult))
+    if (marked.isEmpty) {
+      val dependees: Set[String] =
+        batchesResult
+          .flatten
+          .flatMap(c => c.config.dependencies.toList.flatMap(_.values.map(ref => pathMod.resolve(pathMod.dirname(c.filePath), ref))))
+          .toSet
+
+      val entries = batchesResult.map(_.map(c => DependencyGraphEntry(c, dependees.contains(c.filePath))))
+      Right(DependencyGraph(entries))
+    }
     else Left(s"Error resolving dependencies: ${marked.map(_.filePath).mkString("\n- ", "\n- ", "")}")
   }
 }
