@@ -7,7 +7,6 @@ import scala.scalajs.js.JSStringOps
 
 object StringOutput {
   private val colors = Array[String => String](
-    Colors.red,
     Colors.green,
     Colors.yellow,
     Colors.blue,
