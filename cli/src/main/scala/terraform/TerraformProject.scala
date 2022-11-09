@@ -27,7 +27,9 @@ object TerraformProject {
   def backendFilePath(basePath: String)     = pathMod.resolve(basePath, "__talpini_backend.tf")
   def providersFilePath(basePath: String)   = pathMod.resolve(basePath, "__talpini_providers.tf")
 
-  def jsGetValueAsTerraformString(any: js.Any): String =
+  def newLineIndent(indent: Int) = System.lineSeparator() + (" " * 2 * indent)
+
+  def jsGetValueAsTerraformString(any: js.Any, indent: Int): String = {
     if (!JsNative.isDefined(any)) {
       null
     }
@@ -37,19 +39,20 @@ object TerraformProject {
     }
     else if (JsNative.isArray(any)) {
       val arr = any.asInstanceOf[js.Array[js.Any]]
-      s"[${arr.map(jsGetValueAsTerraformString(_)).mkString(", ")}]" // TODO better?
+      s"[${arr.map(jsGetValueAsTerraformString(_, indent + 1)).mkString(newLineIndent(indent + 1), "," + newLineIndent(indent + 1), newLineIndent(indent))}]" // TODO better?
     }
     else if (JsNative.isObject(any)) {
       val obj = any.asInstanceOf[js.Dictionary[js.Any]]
-      s"{ ${obj.toMap.map { case (k, v) => s"$k = ${jsGetValueAsTerraformString(v)}" }.mkString(", ")} }" // TODO: better?
+      s"{${obj.toMap.map { case (k, v) => s"$k = ${jsGetValueAsTerraformString(v, indent + 1)}" }.mkString(newLineIndent(indent + 1), newLineIndent(indent + 1), newLineIndent(indent))}}" // TODO: better?
     }
     else {
       any.toString // maybe better to exhaustively check and error out
     }
+  }
 
-  def jsGetFieldsAsTerraformStringsWithBlock(value: js.Dictionary[js.Any]): Iterable[String] = value.toMap.map { case (k, v) =>
+  def jsGetFieldsAsTerraformStringsWithBlock(value: js.Dictionary[js.Any], indent: Int): Iterable[String] = value.toMap.map { case (k, v) =>
     val separator = if (JsNative.isObject(v)) " " else " = "
-    s"$k$separator${jsGetValueAsTerraformString(v)}"
+    s"$k$separator${jsGetValueAsTerraformString(v, indent)}"
   }
 
   def generateTerraformOutput(config: LoadedConfig): String =
@@ -64,7 +67,7 @@ object TerraformProject {
     s"""${generatedHeader}
        |terraform {
        |  backend "${config.config.backend.get.tpe}" {
-       |    ${jsGetFieldsAsTerraformStringsWithBlock(config.config.backend.get.config).mkString("\n    ")}
+       |    ${jsGetFieldsAsTerraformStringsWithBlock(config.config.backend.get.config, indent = 2).mkString(newLineIndent(2))}
        |  }
        |}
        |""".stripMargin
@@ -73,12 +76,12 @@ object TerraformProject {
     def generateProvider(key: String, value: js.Dictionary[js.Any]): String =
       s"""
          |provider "$key" {
-         |  ${jsGetFieldsAsTerraformStringsWithBlock(value).mkString("\n  ")}
+         |  ${jsGetFieldsAsTerraformStringsWithBlock(value, indent = 1).mkString(newLineIndent(1))}
          |}
          |""".stripMargin
 
     s"""${generatedHeader}
-       |${config.config.providers.flatMap { case (k, v) => v.map(generateProvider(k, _)).toSeq }.mkString("\n")}
+       |${config.config.providers.flatMap { case (k, v) => v.map(generateProvider(k, _)).toSeq }.mkString(newLineIndent(0))}
        |""".stripMargin
   }
 
@@ -96,12 +99,12 @@ object TerraformProject {
         val providers = v.asInstanceOf[js.Dictionary[String]]
         s"$k = {${providers.map { case (k, v) => s"$k = $v" }.mkString(", ")}}"
 
-      case (k, v) => s"$k = ${jsGetValueAsTerraformString(v)}"
+      case (k, v) => s"$k = ${jsGetValueAsTerraformString(v, 1)}"
     }
 
     s"""${generatedHeader}
        |module "${config.name}" {
-       |  ${fields.mkString("\n  ")}
+       |  ${fields.mkString(newLineIndent(1))}
        |}
        |""".stripMargin
   }
