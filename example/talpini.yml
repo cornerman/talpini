@@ -12,7 +12,7 @@ hooks:
 #     - 'file.copy(`${paths.dir_from_terraform}/.terraform.lock.hcl, '.')
 
 values:
-  woisserdenn: !js env.what
+  woisserdenn: !js? env.what
   environment: !required
   version: 1
 
@@ -171,16 +171,18 @@ providers:
       profile: !js values.aws_profile
       assume_role:
         role_arn: !js values.aws_assume_role_arn
-      allowed_account_ids: [ !js values.aws_account ]
+        external_id: "foo"
+      allowed_account_ids: [ !js values.aws_account, "123456789012" ]
       default_tags:
         tags:
           Environment : !js values.environment
           Project     : !js values.project_name
           ManagedBy   : "Terraform"
-    # - !merge
-    #   - !js providers.aws[0]
-    #   - region: us-east-1
-    #     alias: us-east-1
+    - !merge
+      - !js providers.aws[0]
+      - region: us-east-1
+        alias: us-east-1
+        allowed_account_ids: [ ]
 
 # aws:
 #   profile: ...
