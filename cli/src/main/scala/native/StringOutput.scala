@@ -2,7 +2,6 @@ package talpini.native
 
 import typings.colors.{safeMod => Colors}
 
-import scala.scalajs.js
 import scala.scalajs.js.JSStringOps
 
 object StringOutput {
