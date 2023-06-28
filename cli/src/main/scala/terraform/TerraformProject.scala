@@ -35,7 +35,7 @@ object TerraformProject {
     }
     else if (JsNative.isString(any)) {
       val str = any.asInstanceOf[String]
-      s"\"${str.replaceAll("\"", "\\\"")}\""
+      js.JSON.stringify(str)
     }
     else if (JsNative.isArray(any)) {
       val arr = any.asInstanceOf[js.Array[js.Any]]
